@@ -1,6 +1,6 @@
 ### 🧪 Example 🧪
 
-_run tests from function comments
+_run tests from function comments_
 
 Write the usual comment as documentation
 
