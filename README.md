@@ -36,18 +36,45 @@ on next line:
 // result (dash comment followed by the output on)
 ```
 
-Two commands:
+multiple tests
 
-example - runs the documentation tests from file
+```lisp
+/**
+ * @example
+ * percent(50, 100)
+ * // 50
+ * percent(12, 100)
+ * // 12
+ * percent(20, 300)
+ * // 300 * (20 / 100)
+*/
+```
+
+Define script in pacakge.json
+
+```
+"scripts": {
+ "prove": "node ./receipt/index.js"
+}
+```
+
+Typescript build first
+
+```
+"scripts": {
+ "build": "tsc --build tsconfig.json",
+ "prove": "yarn build && node ./receipt/index.js"
+}
+```
 
 Run the entire file:
 
 ```
-yarn receipt ./percent.js
+yarn prove ./percent.js
 ```
 
 Run individual functions:
 
 ```
-yarn receipt ./percent.js percent
+yarn prove ./percent.js percent
 ```
