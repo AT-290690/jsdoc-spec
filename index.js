@@ -1,16 +1,14 @@
-import { readFile, writeFile, access, mkdir } from 'fs/promises'
-import { fork } from 'child_process'
-import { normalize } from 'path'
+const { readFile, writeFile, access, mkdir } = require('fs/promises')
+const { fork } = require('child_process')
+const { normalize } = require('path')
 ;(async () => {
-  const modulePath = process.argv[1].split('/')
-  modulePath.pop()
-  const root = modulePath.pop()
   try {
-    await access(`./${root}/__generated__`)
+    await access(`./receipt/__generated__`)
   } catch (err) {
-    await mkdir(`./${root}/__generated__`)
+    await mkdir(`./receipt/__generated__`)
   }
   const mod = process.argv[2]
+
   if (!mod)
     return console.log(
       '\x1b[31m',
@@ -20,8 +18,13 @@ import { normalize } from 'path'
       '\x1b[0m'
     )
   const fn = process.argv[3]
-  const outputText = await readFile(mod, 'utf-8')
-  const fileName = mod.split('/').pop()
+  const path =
+    mod.split('.').pop() === 'ts'
+      ? mod.replace('.ts', '.js').replace('/src/', '/dist/')
+      : mod
+  console.log(path)
+  const outputText = await readFile(path, 'utf-8')
+  const fileName = path.split('/').pop()
   const comments = outputText.match(
     new RegExp(/(?:\/\*)((.|[\r\n])*?)(?:\*\/)/gm)
   )
@@ -64,11 +67,12 @@ import { normalize } from 'path'
     .filter(Boolean)
     .map((x) => x.trim())
   await writeFile(
-    `./${root}/__generated__/${fileName}`,
-    `import { __success, __fail, __separator } from "../log.js";
-    import __equal from 'fast-deep-equal';
+    `./receipt/__generated__/${fileName}`,
+    `(async () => {
+const { __success, __fail, __separator } = require("../log.js");
+const __equal = require('fast-deep-equal')
 ${(fn ? names.filter((x) => x === fn) : names)
-  .map((fn) => `import {${fn}} from "${normalize(`../../${mod}`)}"`)
+  .map((fn) => `const {${fn}} = await import("${normalize(`../../${path}`)}")`)
   .join('\n')};
 console.log('\x1b[32m',"${fn ? fn : names.join(', ')}", '\x1b[0m');
 console.log('\x1b[3m', '"${mod}"', '\x1b[0m');
@@ -82,9 +86,9 @@ let a, b, t;
       )
       .filter(Boolean)
       .join('\n')}
-__separator();\n
-      `,
+__separator()
+})();\n`,
     'utf-8'
   )
-  fork(`./${root}/__generated__/${fileName}`)
+  fork(`./receipt/__generated__/${fileName}`)
 })()

@@ -1,5 +1,4 @@
 {
-  "type": "module",
   "name": "receipt",
   "description": "Run tests from comments in JavaScript code",
   "authors": "AT29",
