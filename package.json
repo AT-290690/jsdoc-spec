@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "example",
+  "name": "receipt",
   "description": "Run tests from comments in JavaScript code",
   "authors": "AT29",
   "version": "1.0.0",

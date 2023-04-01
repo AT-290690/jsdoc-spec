@@ -2,10 +2,13 @@ import { readFile, writeFile, access, mkdir } from 'fs/promises'
 import { fork } from 'child_process'
 import { normalize } from 'path'
 ;(async () => {
+  const modulePath = process.argv[1].split('/')
+  modulePath.pop()
+  const root = modulePath.pop()
   try {
-    await access('./example/__generated__')
+    await access(`./${root}/__generated__`)
   } catch (err) {
-    await mkdir('./example/__generated__')
+    await mkdir(`./${root}/__generated__`)
   }
   const mod = process.argv[2]
   if (!mod)
@@ -61,7 +64,7 @@ import { normalize } from 'path'
     .filter(Boolean)
     .map((x) => x.trim())
   await writeFile(
-    `./example/__generated__/${fileName}`,
+    `./${root}/__generated__/${fileName}`,
     `import { __success, __fail, __separator } from "../log.js";
     import __equal from 'fast-deep-equal';
 ${(fn ? names.filter((x) => x === fn) : names)
@@ -84,5 +87,5 @@ __separator();\n
       `,
     'utf-8'
   )
-  fork(`./example/__generated__/${fileName}`)
+  fork(`./${root}/__generated__/${fileName}`)
 })()

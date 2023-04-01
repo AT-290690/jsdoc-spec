@@ -1,4 +1,4 @@
-## 🧪 Example
+## 🧾 Receipt
 
 _run tests from function comments_
 
@@ -42,11 +42,11 @@ example - runs the documentation tests from file
 Run the entire file:
 
 ```
-yarn example ./percent.js
+yarn receipt ./percent.js
 ```
 
 Run individual functions:
 
 ```
-yarn example ./percent.js percent
+yarn receipt ./percent.js percent
 ```
