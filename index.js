@@ -73,7 +73,7 @@ const __equal = require('fast-deep-equal')
           ${functions
             .map((x, i) =>
               i === specific[i]
-                ? `t = process.hrtime();\na = ${x};\nt=process.hrtime(t)\nb = ${results[i]}; __equal(a, b) ? __success(\`${descriptions[i]}\`, b, t) : __fail(\`${descriptions[i]}\`, b, a, t);`
+                ? `t = hrtime();\na = ${x};\nt=hrtime(t)\nb = ${results[i]}; __equal(a, b) ? __success(\`${descriptions[i]}\`, b, t) : __fail(\`${descriptions[i]}\`, b, a, t);`
                 : undefined
             )
             .filter(Boolean)
@@ -85,7 +85,7 @@ const __equal = require('fast-deep-equal')
       __fail,
       __success,
       __separator,
-      process,
+      hrtime: process.hrtime,
       __imports: await import(normalize(`../${path}`)),
     })
   )
