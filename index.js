@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { readFile, writeFile, access, mkdir } from 'fs/promises'
 import { fork } from 'child_process'
+import { normalize } from 'path'
 ;(async () => {
   try {
     await access('./example/__generated__')
@@ -17,9 +17,8 @@ import { fork } from 'child_process'
       '\x1b[0m'
     )
   const fn = process.argv[3]
-  const file = await readFile(mod, 'utf-8')
-
-  const outputText = file
+  const outputText = await readFile(mod, 'utf-8')
+  const fileName = mod.split('/').pop()
   const comments = outputText.match(
     new RegExp(/(?:\/\*)((.|[\r\n])*?)(?:\*\/)/gm)
   )
@@ -62,13 +61,13 @@ import { fork } from 'child_process'
     .filter(Boolean)
     .map((x) => x.trim())
   await writeFile(
-    './example/__generated__/test.js',
+    `./example/__generated__/${fileName}`,
     `import { __success, __fail, __separator } from "../log.js";
     import __equal from 'fast-deep-equal';
 ${(fn ? names.filter((x) => x === fn) : names)
-  .map((fn) => `import {${fn}} from "${`../../${mod}`}"`)
+  .map((fn) => `import {${fn}} from "${normalize(`../../${mod}`)}"`)
   .join('\n')};
-console.log('/* 🧪 Comment Testing 🧪 */');
+console.log('/* 🧪 Example Test 🧪 */');
 console.log('\x1b[32m',"${fn ? fn : names.join(', ')}", '\x1b[0m');
 console.log('\x1b[3m', '"${mod}"', '\x1b[0m');
 __separator();\n
@@ -85,5 +84,5 @@ __separator();\n
       `,
     'utf-8'
   )
-  fork(`./example/__generated__/test.js`)
+  fork(`./example/__generated__/${fileName}`)
 })()
