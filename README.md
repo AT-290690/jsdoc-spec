@@ -1,4 +1,4 @@
-### 🧪 Example 🧪
+## 🧪 Example
 
 _run tests from function comments_
 
