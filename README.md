@@ -1,4 +1,4 @@
-## 🧾 Receipt
+## 🧾 Function Receipt
 
 _run tests from function comments_
 
