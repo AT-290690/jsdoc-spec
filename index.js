@@ -3,6 +3,12 @@ const { normalize } = require('path')
 const { runInContext, createContext } = require('vm')
 const { __success, __fail, __separator } = require('./log.js')
 const __equal = require('fast-deep-equal')
+const {
+  matchComments,
+  matchResults,
+  matchFunctions,
+  matchFunctionCalls,
+} = require('./utils.js')
 ;(async () => {
   const mod = process.argv[2]
   if (!mod)
@@ -18,11 +24,8 @@ const __equal = require('fast-deep-equal')
     mod.split('.').pop() === 'ts'
       ? mod.replace('.ts', '.js').replace('/src/', '/dist/')
       : mod
-  console.log(path)
   const outputText = await readFile(path, 'utf-8')
-  const comments = outputText.match(
-    new RegExp(/(?:\/\*)((.|[\r\n])*?)(?:\*\/)/gm)
-  )
+  const comments = matchComments(outputText)
   if (!comments || !comments.length)
     return console.log(
       '\x1b[31m',
@@ -31,36 +34,20 @@ const __equal = require('fast-deep-equal')
       mod,
       '\x1b[0m'
     )
-  const functions = comments
-    .flatMap((r) => r.match(new RegExp(/(?<=@example).*?(?=\n)/gm)))
-    .filter(Boolean)
-    .map((x) => x.trim())
+  const functions = matchFunctions(comments)
   if (!functions.length)
     return console.log(
       '\x1b[31m',
       '\x1b[1m',
-      'Not a single @example found',
+      'Not a single test found',
       '\x1b[0m'
     )
   const specific = fn
     ? functions.map((r, i) => (r.includes(`${fn}(`) ? i : -1)).filter(() => -1)
     : functions.map((_, i) => i)
   const descriptions = functions.map((x) => `${x}`)
-  const names = [
-    ...descriptions
-      .map((x) => x.match(new RegExp(/^(.*?)(?=(\())/gm)))
-      .flat()
-      .reduce((acc, item) => {
-        acc.add(item)
-        return acc
-      }, new Set()),
-  ]
-  const results = comments
-    .flatMap((x) =>
-      x.trim().match(new RegExp(/(?<=@example.+\n.+\/\/).*?(?=(\n))/gm))
-    )
-    .filter(Boolean)
-    .map((x) => x.trim())
+  const names = matchFunctionCalls(descriptions)
+  const results = matchResults(comments)
   runInContext(
     `(async () => {
       ${(fn ? names.filter((x) => x === fn) : names)

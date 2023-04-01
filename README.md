@@ -1,20 +1,21 @@
-## 🧾 Function Receipt
+## proofn
 
 _run tests from function comments_
 
 Write the usual comment as documentation
 
-```ts
+```js
 /**
  * @param percent number
  * @param value number
  * @returns number
  *
- * @example percent(50, 100)
+ * @example
+ * percent(50, 100)
  * // 50
- * @example percent(12, 100)
+ * percent(12, 100)
  * // 12
- * @example percent(20, 300)
+ * percent(20, 300)
  * // 300 * (20 / 100)
  */
 export const percent = (percent, value) => Math.round(value * (percent / 100))
