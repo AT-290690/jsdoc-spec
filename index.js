@@ -70,7 +70,7 @@ import { normalize } from 'path'
 ${(fn ? names.filter((x) => x === fn) : names)
   .map((fn) => `import {${fn}} from "${normalize(`../../${mod}`)}"`)
   .join('\n')};
-console.log('\x1b[32m',"🧾 ${fn ? fn : names.join(', ')}", '\x1b[0m');
+console.log('\x1b[32m',"${fn ? fn : names.join(', ')}", '\x1b[0m');
 console.log('\x1b[3m', '"${mod}"', '\x1b[0m');
 __separator();\n
 let a, b, t;
