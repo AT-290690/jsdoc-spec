@@ -1,14 +1,10 @@
-const { readFile, writeFile, access, mkdir } = require('fs/promises')
-const { fork } = require('child_process')
+const { readFile } = require('fs/promises')
 const { normalize } = require('path')
+const { runInContext, createContext } = require('vm')
+const { __success, __fail, __separator } = require('./log.js')
+const __equal = require('fast-deep-equal')
 ;(async () => {
-  try {
-    await access(`./receipt/__generated__`)
-  } catch (err) {
-    await mkdir(`./receipt/__generated__`)
-  }
   const mod = process.argv[2]
-
   if (!mod)
     return console.log(
       '\x1b[31m',
@@ -24,7 +20,6 @@ const { normalize } = require('path')
       : mod
   console.log(path)
   const outputText = await readFile(path, 'utf-8')
-  const fileName = path.split('/').pop()
   const comments = outputText.match(
     new RegExp(/(?:\/\*)((.|[\r\n])*?)(?:\*\/)/gm)
   )
@@ -66,29 +61,32 @@ const { normalize } = require('path')
     )
     .filter(Boolean)
     .map((x) => x.trim())
-  await writeFile(
-    `./receipt/__generated__/${fileName}`,
+  runInContext(
     `(async () => {
-const { __success, __fail, __separator } = require("../log.js");
-const __equal = require('fast-deep-equal')
-${(fn ? names.filter((x) => x === fn) : names)
-  .map((fn) => `const {${fn}} = await import("${normalize(`../../${path}`)}")`)
-  .join('\n')};
-console.log('\x1b[32m',"${fn ? fn : names.join(', ')}", '\x1b[0m');
-console.log('\x1b[3m', '"${mod}"', '\x1b[0m');
-__separator();\n
-let a, b, t;
-    ${functions
-      .map((x, i) =>
-        i === specific[i]
-          ? `t = process.hrtime();\na = ${x};\nt=process.hrtime(t)\nb = ${results[i]}; __equal(a, b) ? __success(\`${descriptions[i]}\`, b, t) : __fail(\`${descriptions[i]}\`, b, a, t);`
-          : undefined
-      )
-      .filter(Boolean)
-      .join('\n')}
-__separator()
-})();\n`,
-    'utf-8'
+      ${(fn ? names.filter((x) => x === fn) : names)
+        .map((fn) => `const {${fn}} = __imports;`)
+        .join('\n')};
+      console.log('\x1b[32m',"${fn ? fn : names.join(', ')}", '\x1b[0m');
+      console.log('\x1b[3m', '"${mod}"', '\x1b[0m');
+      __separator();\n
+      let a, b, t;
+          ${functions
+            .map((x, i) =>
+              i === specific[i]
+                ? `t = process.hrtime();\na = ${x};\nt=process.hrtime(t)\nb = ${results[i]}; __equal(a, b) ? __success(\`${descriptions[i]}\`, b, t) : __fail(\`${descriptions[i]}\`, b, a, t);`
+                : undefined
+            )
+            .filter(Boolean)
+            .join('\n')}
+      __separator()
+      })();\n`,
+    createContext({
+      __equal,
+      __fail,
+      __success,
+      __separator,
+      process,
+      __imports: await import(normalize(`../${path}`)),
+    })
   )
-  fork(`./receipt/__generated__/${fileName}`)
 })()
