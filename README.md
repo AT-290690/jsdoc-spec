@@ -1,6 +1,6 @@
-### 🧪 Example Comment Tests 🧪
+### 🧪 Example 🧪
 
-_run tests from function documentation_
+_run tests from function comments
 
 Write the usual comment as documentation
 
