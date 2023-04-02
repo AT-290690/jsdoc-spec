@@ -2,7 +2,7 @@
   "name": "jsdoc-spec",
   "description": "Run tests from comments in JavaScript/Typescript code",
   "author": "AT290690",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "index.js",
   "prettier": {
     "semi": false,

@@ -58,6 +58,18 @@ const examples = [
    */
   export const stripFloatingPointOverflow = (num: number): number => Number(num.toPrecision(12));
 `,
+  `/**
+* Remove reads after meter expiration
+* Optionally do additional filter based on beforeDateOn
+* This function is curried
+* @param beforeDateOn optional Date
+* @returns Function
+* @example
+* withoutUnverifiedReadsAfter()({ reads: [{ dateOn: new Date('2020-01-11'), dateOn: new Date('2020-01-01') }], verifiedOn: new Date('2018-01-10') })
+* // { "reads":[{"dateOn": new Date("2020-01-01") }],"verifiedOn":new Date("2018-01-10") }
+* withoutUnverifiedReadsAfter(new Date('2017-12-01'))({ reads: [{ dateOn: new Date('2020-01-11'), dateOn: new Date('2020-01-01') }], verifiedOn: new Date('2018-01-10') })
+* // {"reads":[],"verifiedOn":new Date("2018-01-10") }
+*/`,
 ]
 
 const success = (msg) =>
@@ -100,6 +112,13 @@ b = [
   'stripFloatingPointOverflow(Math.PI)',
 ]
 equal(a, b) ? success(c) : fail(c, b, a)
+c = 'Parsing functions 4'
+a = matchFunctions(matchComments(examples[3]))
+b = [
+  `withoutUnverifiedReadsAfter()({ reads: [{ dateOn: new Date('2020-01-11'), dateOn: new Date('2020-01-01') }], verifiedOn: new Date('2018-01-10') })`,
+  `withoutUnverifiedReadsAfter(new Date('2017-12-01'))({ reads: [{ dateOn: new Date('2020-01-11'), dateOn: new Date('2020-01-01') }], verifiedOn: new Date('2018-01-10') })`,
+]
+equal(a, b) ? success(c) : fail(c, b, a)
 c = 'Parsing results 1'
 a = matchResults(matchComments(examples[0]))
 b = [
@@ -119,4 +138,59 @@ equal(a, b) ? success(c) : fail(c, b, a)
 c = 'Parsing results 3'
 a = matchResults(matchComments(examples[2]))
 b = ['1.42522424323', '3.14159265359']
+equal(a, b) ? success(c) : fail(c, b, a)
+c = 'Parsing results 4'
+a = matchResults(matchComments(examples[3]))
+b = [
+  `{ "reads":[{"dateOn": new Date("2020-01-01") }],"verifiedOn":new Date("2018-01-10") }`,
+  `{"reads":[],"verifiedOn":new Date("2018-01-10") }`,
+]
+equal(a, b) ? success(c) : fail(c, b, a)
+c = 'Equality'
+a = [
+  1,
+  '121',
+  12.21,
+  {
+    name: 'John',
+    kids: [
+      { name: 'Betty', kids: [{ name: 'Johny', kids: [] }] },
+      { name: 'Michele', kids: [] },
+    ],
+  },
+  [1, 2, new Date('2020-01-01')],
+  {
+    reads: [{ dateOn: new Date('2020-01-01T00:00:00.000Z') }],
+    verifiedOn: '2018-01-10T00:00:00.000Z',
+  },
+  { dateOn: new Date('2020-01-01') },
+]
+b = [
+  1,
+  '121',
+  12.21,
+  {
+    name: 'John',
+    kids: [
+      { name: 'Betty', kids: [{ name: 'Johny', kids: [] }] },
+      { name: 'Michele', kids: [] },
+    ],
+  },
+  [1, 2, new Date('2020-01-01')],
+  {
+    reads: [{ dateOn: new Date('2020-01-01T00:00:00.000Z') }],
+    verifiedOn: '2018-01-10T00:00:00.000Z',
+  },
+  { dateOn: new Date('2020-01-01') },
+]
+equal(a, b) ? success(c) : fail(c, b, a)
+c = 'Dates'
+a = {
+  reads: [{ dateOn: new Date('2020-01-01') }],
+  verifiedOn: new Date('2018-01-10'),
+}
+b = {
+  reads: [{ dateOn: new Date('2020-01-01') }],
+  verifiedOn: new Date('2018-01-10'),
+}
 equal(a, b) ? success(c) : fail(c, b, a)
