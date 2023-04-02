@@ -56,8 +56,15 @@ module.exports.matchFunctions = matchFunctions
 module.exports.matchResults = matchResults
 module.exports.matchFunctionCalls = matchFunctionCalls
 module.exports.equal = __equal
-module.exports.proofn = async ({ file, fn, ts, equal, success, fail }) => {
-  if (!file)
+module.exports.testFile = async ({
+  filePath,
+  fn,
+  ts,
+  equal,
+  success,
+  fail,
+}) => {
+  if (!filePath)
     return console.log(
       '\x1b[31m',
       'Provide a file from root like this:',
@@ -66,11 +73,11 @@ module.exports.proofn = async ({ file, fn, ts, equal, success, fail }) => {
       '\x1b[0m'
     )
   const path =
-    file.split('.').pop() === 'ts'
-      ? file
+    filePath.split('.').pop() === 'ts'
+      ? filePath
           .replace('.ts', '.js')
-          .replace(ts?.inputDir ?? '/src/', ts?.outDir ?? '/dist/')
-      : file
+          .replace(`/${ts?.inpDir ?? 'src'}/`, `/${ts?.outDir ?? 'dist'}/`)
+      : filePath
   const outputText = await readFile(path, 'utf-8')
   const comments = matchComments(outputText)
   if (!comments || !comments.length)
@@ -78,7 +85,7 @@ module.exports.proofn = async ({ file, fn, ts, equal, success, fail }) => {
       '\x1b[31m',
       'There are no documentation comments in',
       '\x1b[33m',
-      file,
+      filePath,
       '\x1b[0m'
     )
   const functions = matchFunctions(comments)
@@ -101,7 +108,7 @@ module.exports.proofn = async ({ file, fn, ts, equal, success, fail }) => {
         .map((fn) => `const {${fn}} = __imports;`)
         .join('\n')};
       console.log('\x1b[32m',"${fn ? fn : names.join(', ')}", '\x1b[0m');
-      console.log('\x1b[3m', '"${file}"', '\x1b[0m');
+      console.log('\x1b[3m', '"${filePath}"', '\x1b[0m');
       __separator();\n
       let a, b, t;
           ${functions

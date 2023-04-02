@@ -50,20 +50,46 @@ multiple tests
 */
 ```
 
+Create an entry point file
+
+```js
+import { testFile } from './jsdoc-test'
+// filePath - path to the file
+// fn - optional run only tests for a specific function
+
+testFile({ filePath: process.argv[2], fn: process.argv[3] })
+```
+
+```js
+import { testFile } from './jsdoc-test'
+// works with typescript files (does not compile TS!)
+testFile({ filePath: './src/func.ts' })
+```
+
+```js
+const { testFile } = require('./jsdoc-test')
+testFile({
+  filePath: './main/func.ts',
+  // provide inpDir and outDir
+  // By default inDir is src and outDir is 'dist'
+  ts: { inpDir: 'main', outDir: 'out' },
+})
+```
+
 Define script in pacakge.json
 
 ```
 "scripts": {
- "test": "node ./receipt/index.js"
+ "test": "node ./jsdoc-test.js"
 }
 ```
 
-Typescript build first
+Typescript - you have to compile it first
 
 ```
 "scripts": {
  "build": "tsc --build tsconfig.json",
- "test": "yarn build && node ./jsdoct-test/index.js"
+ "test": "yarn build && node ./jsdoc-test.js"
 }
 ```
 
