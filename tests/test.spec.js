@@ -1,5 +1,5 @@
 const { deepStrictEqual } = require('assert')
-const { matchComments, matchFunctions, matchResults } = require('../utils')
+const { matchComments, matchFunctions, matchResults } = require('../index.js')
 describe('Parsing should work', () => {
   const examples = [
     `/**

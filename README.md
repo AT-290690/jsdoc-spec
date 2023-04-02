@@ -1,4 +1,4 @@
-## proofn
+## JSDoc-test
 
 _run tests from function comments_
 
@@ -54,7 +54,7 @@ Define script in pacakge.json
 
 ```
 "scripts": {
- "prove": "node ./receipt/index.js"
+ "test": "node ./receipt/index.js"
 }
 ```
 
@@ -63,18 +63,18 @@ Typescript build first
 ```
 "scripts": {
  "build": "tsc --build tsconfig.json",
- "prove": "yarn build && node ./receipt/index.js"
+ "test": "yarn build && node ./jsdoct-test/index.js"
 }
 ```
 
 Run the entire file:
 
 ```
-yarn prove ./percent.js
+yarn test ./percent.js
 ```
 
 Run individual functions:
 
 ```
-yarn prove ./percent.js percent
+yarn test ./percent.js percent
 ```
