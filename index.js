@@ -102,32 +102,35 @@ module.exports.testFile = async ({
   const descriptions = functions.map((x) => `${x}`)
   const names = matchFunctionCalls(descriptions)
   const results = matchResults(comments)
+  const source = `(async () => {
+    ${(fn ? names.filter((x) => x === fn) : names)
+      .map((fn) => `const {${fn}} = __imports;`)
+      .join('\n')}
+    console.log('\x1b[32m',"${fn ? fn : names.join(', ')}", '\x1b[0m');
+    console.log('\x1b[3m', '"${filePath}"', '\x1b[0m');
+    __separator();\n
+    let a, b, t;
+        ${functions
+          .map((x, i) =>
+            i === specific[i]
+              ? `t = hrtime();\na = ${x};\nt=hrtime(t)\nb = ${results[i]}; __equal(a, b) ? __success(\`${descriptions[i]}\`, b, t) : __fail(\`${descriptions[i]}\`, b, a, t);`
+              : undefined
+          )
+          .filter(Boolean)
+          .join('\n')}
+    __separator()
+    })();\n`
   runInContext(
-    `(async () => {
-      ${(fn ? names.filter((x) => x === fn) : names)
-        .map((fn) => `const {${fn}} = __imports;`)
-        .join('\n')};
-      console.log('\x1b[32m',"${fn ? fn : names.join(', ')}", '\x1b[0m');
-      console.log('\x1b[3m', '"${filePath}"', '\x1b[0m');
-      __separator();\n
-      let a, b, t;
-          ${functions
-            .map((x, i) =>
-              i === specific[i]
-                ? `t = hrtime();\na = ${x};\nt=hrtime(t)\nb = ${results[i]}; __equal(a, b) ? __success(\`${descriptions[i]}\`, b, t) : __fail(\`${descriptions[i]}\`, b, a, t);`
-                : undefined
-            )
-            .filter(Boolean)
-            .join('\n')}
-      __separator()
-      })();\n`,
+    source,
     createContext({
       __equal: equal ?? __equal,
       __fail: fail ?? __fail,
       __success: success ?? __success,
       __separator,
       hrtime: process.hrtime,
-      __imports: await import(normalize(`../${path}`)),
+      __imports: await import(
+        `../${normalize(`${process.cwd().split('/').pop()}/${path}`)}`
+      ),
     })
   )
 }
