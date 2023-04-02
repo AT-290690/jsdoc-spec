@@ -41,7 +41,6 @@ const __equal = (a, b) => {
   }
   return a !== a && b !== b
 }
-
 const formatPerf = (time) => {
   const isSec = time[1] > 1000000
   const t = isSec
@@ -68,7 +67,6 @@ const __fail = (msg, result, regression, time) =>
     '\x1b[0m'
   )
 const __separator = () => console.log('-'.repeat(process.stdout.columns))
-
 const matchComments = (source) =>
   source.match(new RegExp(/(?:@example)((.|[\r\n])*?)(?:\*\/)/gm))
 const matchFunctions = (comments) =>
@@ -136,41 +134,53 @@ module.exports.testFile = async ({
       'Not a single test found',
       '\x1b[0m'
     )
+
   const specific = fn
     ? functions.map((r, i) => (r.includes(`${fn}(`) ? i : -1)).filter(() => -1)
     : functions.map((_, i) => i)
   const descriptions = functions.map((x) => `${x}`)
   const names = matchFunctionCalls(descriptions)
   const results = matchResults(comments)
-  const source = `(async () => {
-    ${(fn ? names.filter((x) => x === fn) : names)
-      .map((fn) => `const {${fn}} = __imports;`)
-      .join('\n')}
-    console.log('\x1b[32m',"${fn ? fn : names.join(', ')}", '\x1b[0m');
-    console.log('\x1b[3m', '"${filePath}"', '\x1b[0m');
-    __separator();\n
-    let a, b, t;
+  const imports = (fn ? names.filter((x) => x === fn) : names).join(',')
+  if (!imports.length) {
+    return console.log(
+      '\x1b[31m',
+      '\x1b[1m',
+      'There is nothing to test',
+      '\x1b[0m'
+    )
+  }
+  const source = `(async ()=>{
+    const {${imports}}=__imports;
+    console.log('\x1b[32m',"${fn ? fn : names.join(',')}",'\x1b[0m');
+    console.log('\x1b[3m','"${filePath}"','\x1b[0m');
+    __separator();
+    let __a,__b,__t;
         ${functions
           .map((x, i) =>
             i === specific[i]
-              ? `t = hrtime();\na = ${x};\nt=hrtime(t)\nb = ${results[i]}; __equal(a, b) ? __success(\`${descriptions[i]}\`, b, t) : __fail(\`${descriptions[i]}\`, b, a, t);`
+              ? `__t=__hrtime();\n__a=${x};\n__t=__hrtime(__t)\n__b=${results[i]};__equal(__a,__b)?__success(\`${descriptions[i]}\`,__b,__t):__fail(\`${descriptions[i]}\`,__b,__a,__t);`
               : undefined
           )
           .filter(Boolean)
           .join('\n')}
     __separator()
     })();\n`
-  runInContext(
-    source,
-    createContext({
-      __equal: equal ?? __equal,
-      __fail: fail ?? __fail,
-      __success: success ?? __success,
-      __separator,
-      hrtime: process.hrtime,
-      __imports: await import(
-        normalize(`${root ?? `../${process.cwd().split('/').pop()}`}/${path}`)
-      ),
-    })
-  )
+  try {
+    runInContext(
+      source,
+      createContext({
+        __equal: equal ?? __equal,
+        __fail: fail ?? __fail,
+        __success: success ?? __success,
+        __separator,
+        __hrtime: process.hrtime,
+        __imports: await import(
+          normalize(`${root ?? `../${process.cwd().split('/').pop()}`}/${path}`)
+        ),
+      })
+    )
+  } catch (err) {
+    __fail('Has Errors', 'To Not Throw Errors', err.toString(), [0, 0])
+  }
 }
