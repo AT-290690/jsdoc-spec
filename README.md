@@ -50,6 +50,7 @@ multiple tests
 */
 ```
 
+Compact and to the point log:
 <img width="450" alt="Screenshot 2023-04-02 at 20 26 38" src="https://user-images.githubusercontent.com/88512646/229368947-260bfaf2-fed5-41df-9835-5c68a9734bbd.png">
 
 Create an entry point file
