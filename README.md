@@ -122,8 +122,8 @@ Equality is deep and strict
 
 ```ts
 type TreeNode = {
-  left: TreeNode | undefined
-  right: TreeNode | undefined
+  left: TreeNode
+  right: TreeNode
   value: number
 }
 /**
@@ -145,7 +145,7 @@ type TreeNode = {
 * // { left: { value: 7, left: { value: 9 }, right: { value: 6 } }, right: { value: 2, left: { value: 3 }, right: { value: 1 } }, value: 4 };
 */
 export const invertTree = (root: TreeNode): TreeNode => {
-  if (!root.left || !root.right) return root
+  if (!root || !root.left || !root.right) return root
   const { left, right } = root
   root.left = right
   root.right = left

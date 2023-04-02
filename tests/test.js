@@ -70,6 +70,27 @@ const examples = [
 * withoutUnverifiedReadsAfter(new Date('2017-12-01'))({ reads: [{ dateOn: new Date('2020-01-11'), dateOn: new Date('2020-01-01') }], verifiedOn: new Date('2018-01-10') })
 * // {"reads":[],"verifiedOn":new Date("2018-01-10") }
 */`,
+  `/**
+* bla bla bla
+* jhjhjhjhh  
+* // sakdjkasdjkasd
+* @example 
+* add(1, 2)
+* // 3
+* add(2, 3)
+* // 8
+* add(4, 5) // 9
+* bla bla bla
+* jhjhjhjhh  
+* @example 
+* add(1, 2)
+* // 13
+* add(2, 3)
+* // 18
+* add(4, 5)
+* // 119
+*/
+export const add = (a: number, b: number): number => a + b;`,
 ]
 
 const success = (msg) =>
@@ -83,9 +104,11 @@ const fail = (msg, result, regression) =>
   console.log(
     '\x1b[34m',
     '\x1b[0m',
-    `\x1b[33m\n${msg}\n\x1b[32m\nExpected:\n\n${result.join(
-      '\n'
-    )}\n\x1b[31m\nReceived:\n\n${regression.join('\n')}`,
+    `\x1b[33m\n${msg}\n\x1b[32m\nExpected:\n\n${JSON.stringify(
+      result,
+      null,
+      1
+    )}\n\x1b[31m\nReceived:\n\n${JSON.stringify(regression, null, 1)}`,
     '\x1b[0m'
   )
 let a, b, c
@@ -118,6 +141,16 @@ b = [
   `withoutUnverifiedReadsAfter()({ reads: [{ dateOn: new Date('2020-01-11'), dateOn: new Date('2020-01-01') }], verifiedOn: new Date('2018-01-10') })`,
   `withoutUnverifiedReadsAfter(new Date('2017-12-01'))({ reads: [{ dateOn: new Date('2020-01-11'), dateOn: new Date('2020-01-01') }], verifiedOn: new Date('2018-01-10') })`,
 ]
+c = 'Parsing functions 5'
+a = matchFunctions(matchComments(examples[4]))
+b = [
+  'add(1, 2)',
+  'add(2, 3)',
+  'add(4, 5)',
+  'add(1, 2)',
+  'add(2, 3)',
+  'add(4, 5)',
+]
 equal(a, b) ? success(c) : fail(c, b, a)
 c = 'Parsing results 1'
 a = matchResults(matchComments(examples[0]))
@@ -145,6 +178,10 @@ b = [
   `{ "reads":[{"dateOn": new Date("2020-01-01") }],"verifiedOn":new Date("2018-01-10") }`,
   `{"reads":[],"verifiedOn":new Date("2018-01-10") }`,
 ]
+equal(a, b) ? success(c) : fail(c, b, a)
+c = 'Parsing results 5'
+a = matchResults(matchComments(examples[4]))
+b = ['3', '8', '9', '13', '18', '119']
 equal(a, b) ? success(c) : fail(c, b, a)
 c = 'Equality'
 a = [

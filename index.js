@@ -3,7 +3,7 @@ const { normalize } = require('path')
 const { runInContext, createContext } = require('vm')
 const __equal = (a, b) => {
   if (a === b) return true
-  else if (a && b && typeof a == 'object' && typeof b == 'object') {
+  if (a && b && typeof a == 'object' && typeof b == 'object') {
     const c = a.constructor.name
     if (c !== b.constructor.name) return false
     let length, i, keys
@@ -12,17 +12,20 @@ const __equal = (a, b) => {
       if (length != b.length) return false
       for (i = length; i-- !== 0; ) if (!__equal(a[i], b[i])) return false
       return true
-    } else if (c === 'Date') return a.toString() === b.toString()
-    else if (c === 'Map') {
+    }
+    if (c === 'Date') return a.toString() === b.toString()
+    if (c === 'Map') {
       if (a.size !== b.size) return false
       for (i of a.entries()) if (!b.has(i[0])) return false
       for (i of a.entries()) if (!__equal(i[1], b.get(i[0]))) return false
       return true
-    } else if (c === 'Set') {
+    }
+    if (c === 'Set') {
       if (a.size !== b.size) return false
       for (i of a.entries()) if (!b.has(i[0])) return false
       return true
-    } else if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) {
+    }
+    if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) {
       length = a.length
       if (length != b.length) return false
       for (i = length; i-- !== 0; ) if (a[i] !== b[i]) return false
@@ -41,7 +44,7 @@ const __equal = (a, b) => {
   }
   return a !== a && b !== b
 }
-const formatPerf = (time) => {
+const __formatPerf = (time) => {
   const isSec = time[1] > 1000000
   const t = isSec
     ? (time[0] * 1000 + time[1] / 1000000) / 1000
@@ -52,18 +55,22 @@ const __success = (msg, result, time) =>
   console.log(
     '\x1b[32m',
     '\x1b[0m',
-    `\x1b[33m${msg} \x1b[36m${formatPerf(time)}\n\x1b[32m   + ${JSON.stringify(
-      result
-    )}`,
+    `\x1b[33m${msg} \x1b[36m${__formatPerf(
+      time
+    )}\n\x1b[32m   + ${JSON.stringify(result)}`,
     '\x1b[0m'
   )
 const __fail = (msg, result, regression, time) =>
   console.log(
     '\x1b[34m',
     '\x1b[0m',
-    `\x1b[33m${msg} \x1b[36m${formatPerf(time)}\n\x1b[32m   + ${JSON.stringify(
-      result
-    )} \n\x1b[31m   - ${JSON.stringify(regression)}`,
+    `\x1b[33m${msg} \x1b[36m${__formatPerf(
+      time
+    )}\n\x1b[32m   + ${JSON.stringify(
+      result,
+      null,
+      1
+    )} \n\x1b[31m   - ${JSON.stringify(regression, null, 1)}`,
     '\x1b[0m'
   )
 const __separator = () => console.log('-'.repeat(process.stdout.columns))
@@ -71,12 +78,14 @@ const matchComments = (source) =>
   source.match(new RegExp(/(?:@example)((.|[\r\n])*?)(?:\*\/)/gm))
 const matchFunctions = (comments) =>
   comments
-    .flatMap((r) => r.match(new RegExp(/(\w+\().+(?=\n.+\/\/)/gm)))
+    .flatMap((r) => r.match(new RegExp(/(\w+\().+(?=(\s.*\/\/))/gm)))
     .filter(Boolean)
     .map((x) => x.trim())
 const matchResults = (comments) =>
   comments
-    .flatMap((x) => x.trim().match(new RegExp(/(?<=\n.+\/\/).*?(?=(\n))/gm)))
+    .flatMap((x) =>
+      x.trim().match(new RegExp(/(?<=\/\/).*?(?=(\n|\/\/|\*\/))/gm))
+    )
     .filter(Boolean)
     .map((x) => x.trim())
 const matchFunctionCalls = (functions) => [
@@ -175,9 +184,7 @@ module.exports.testFile = async ({
         __success: success ?? __success,
         __separator,
         __hrtime: process.hrtime,
-        __imports: await import(
-          normalize(`${root ?? `../${process.cwd().split('/').pop()}`}/${path}`)
-        ),
+        __imports: await import(normalize(`${root ?? `../../`}/${path}`)),
       })
     )
   } catch (err) {
