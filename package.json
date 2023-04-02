@@ -1,5 +1,5 @@
 {
-  "name": "jsdoc-test",
+  "name": "jsdoc-spec",
   "description": "Run tests from comments in JavaScript/Typescript code",
   "author": "AT290690",
   "version": "1.0.0",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AT-290690/jsdoc-test.git"
+    "url": "git+https://github.com/AT-290690/jsdoc-spec.git"
   },
   "dependencies": {
     "fast-deep-equal": "^3.1.3"

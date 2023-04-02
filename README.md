@@ -1,4 +1,4 @@
-## JSDoc-test
+## jsdoc-spec
 
 _run tests from function comments_
 
@@ -53,7 +53,7 @@ multiple tests
 Create an entry point file
 
 ```js
-import { testFile } from './jsdoc-test'
+import { testFile } from './jsdoc-spec'
 // filePath - path to the file
 // fn - optional run only tests for a specific function
 
@@ -61,13 +61,13 @@ testFile({ filePath: process.argv[2], fn: process.argv[3] })
 ```
 
 ```js
-import { testFile } from './jsdoc-test'
+import { testFile } from './jsdoc-spec'
 // works with typescript files (does not compile TS!)
 testFile({ filePath: './src/func.ts' })
 ```
 
 ```js
-const { testFile } = require('./jsdoc-test')
+const { testFile } = require('./jsdoc-spec')
 testFile({
   filePath: './main/func.ts',
   // provide inpDir and outDir
@@ -80,7 +80,7 @@ Define script in pacakge.json
 
 ```
 "scripts": {
- "test": "node ./jsdoc-test.js"
+ "test": "node ./jsdoc-spec.js"
 }
 ```
 
@@ -89,7 +89,7 @@ Typescript - you have to compile it first
 ```
 "scripts": {
  "build": "tsc --build tsconfig.json",
- "test": "yarn build && node ./jsdoc-test.js"
+ "test": "yarn build && node ./jsdoc-spec.js"
 }
 ```
 
