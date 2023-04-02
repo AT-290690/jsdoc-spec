@@ -60,6 +60,7 @@ module.exports.testFile = async ({
   filePath,
   fn,
   ts,
+  root,
   equal,
   success,
   fail,
@@ -129,7 +130,7 @@ module.exports.testFile = async ({
       __separator,
       hrtime: process.hrtime,
       __imports: await import(
-        `../${normalize(`${process.cwd().split('/').pop()}/${path}`)}`
+        normalize(`${root ?? `../${process.cwd().split('/').pop()}`}/${path}`)
       ),
     })
   )
