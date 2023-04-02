@@ -16,7 +16,7 @@ const __success = (msg, result, time) =>
     '\x1b[0m',
     `\x1b[33m${msg} \x1b[36m${formatPerf(time)}\n\x1b[32m   + ${JSON.stringify(
       result
-    )}\x1b[31m`,
+    )}`,
     '\x1b[0m'
   )
 const __fail = (msg, result, regression, time) =>

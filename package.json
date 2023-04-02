@@ -23,10 +23,8 @@
     "function-test"
   ],
   "license": "MIT",
-  "devDependencies": {
-    "mocha": "^10.2.0"
-  },
+  "devDependencies": {},
   "scripts": {
-    "test": "mocha tests/test.spec.js"
+    "test": "node tests/test.js"
   }
 }
