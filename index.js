@@ -13,7 +13,7 @@ const __equal = (a, b) => {
       for (i = length; i-- !== 0; ) if (!__equal(a[i], b[i])) return false
       return true
     }
-    if (c === 'Date') return a.toString() === b.toString()
+    if (c === 'Date') return a.valueOf() === b.valueOf()
     if (c === 'Map') {
       if (a.size !== b.size) return false
       for (i of a.entries()) if (!b.has(i[0])) return false
