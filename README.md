@@ -80,15 +80,6 @@ testFile({
 })
 ```
 
-By default root entry point is '../current_working_directory/'
-but some project structures can be very complex and have project within projects.
-For these cases use root to overwrite entry point
-
-```js
-import { testFile } from './jsdoc-spec'
-testFile({ filePath: './dist/func.js', root: '../../my_project' })
-```
-
 Define script in pacakge.json
 
 ```

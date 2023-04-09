@@ -1,5 +1,5 @@
 const { readFile } = require('fs/promises')
-const { normalize } = require('path')
+const { normalize, resolve } = require('path')
 const { runInContext, createContext } = require('vm')
 const __equal = (a, b) => {
   if (a === b) return true
@@ -116,7 +116,6 @@ module.exports.testFile = async ({
   filePath,
   fn,
   ts,
-  root,
   equal,
   success,
   fail,
@@ -129,13 +128,14 @@ module.exports.testFile = async ({
       'packages/api/src/myFile.js',
       '\x1b[0m'
     )
+  filePath = `./${filePath}`
   const path =
     filePath.split('.').pop() === 'ts'
       ? filePath
           .replace('.ts', '.js')
           .replace(`/${ts?.inpDir ?? 'src'}/`, `/${ts?.outDir ?? 'dist'}/`)
       : filePath
-  const outputText = await readFile(path, 'utf-8')
+  const outputText = await readFile(resolve(path), 'utf-8')
   const comments = matchComments(outputText)
   if (!comments || !comments.length)
     return console.log(
@@ -194,7 +194,7 @@ module.exports.testFile = async ({
         __success: success ?? __success,
         __separator,
         __hrtime: process.hrtime,
-        __imports: await import(normalize(`${root ?? `../../`}/${path}`)),
+        __imports: await import(resolve(path)),
       })
     )
   } catch (err) {
