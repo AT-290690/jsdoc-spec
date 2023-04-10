@@ -1,4 +1,4 @@
-const { readFile } = require('fs/promises')
+const { readFile, writeFile } = require('fs/promises')
 const { normalize, resolve } = require('path')
 const { runInContext, createContext } = require('vm')
 const __equal = (a, b) => {
@@ -112,14 +112,7 @@ module.exports.matchFunctions = matchFunctions
 module.exports.matchResults = matchResults
 module.exports.matchFunctionCalls = matchFunctionCalls
 module.exports.equal = __equal
-module.exports.testFile = async ({
-  filePath,
-  fn,
-  ts,
-  equal,
-  success,
-  fail,
-}) => {
+const testFile = async ({ filePath, fn, ts, equal, success, fail }) => {
   if (!filePath)
     return console.log(
       '\x1b[31m',
@@ -142,7 +135,7 @@ module.exports.testFile = async ({
       '\x1b[31m',
       'There are no documentation comments in',
       '\x1b[33m',
-      filePath,
+      normalize(filePath),
       '\x1b[0m'
     )
   const functions = matchFunctions(comments)
@@ -169,10 +162,11 @@ module.exports.testFile = async ({
       '\x1b[0m'
     )
   }
+  __separator()
+  console.log('\x1b[36m', `${fn ? fn : names.join(',')}`, '\x1b[0m')
+  console.log('\x1b[3m', `${normalize(filePath)}`, '\x1b[0m')
   const source = `(async ()=>{
     const {${imports}}=__imports;
-    console.log('\x1b[32m',"${fn ? fn : names.join(',')}",'\x1b[0m');
-    console.log('\x1b[3m','"${filePath}"','\x1b[0m');
     __separator();
     let __a,__b,__t;
         ${functions
@@ -199,5 +193,122 @@ module.exports.testFile = async ({
     )
   } catch (err) {
     __fail('Has Errors', 'To Not Throw Errors', err.toString(), [0, 0])
+  }
+}
+module.exports.testFile = testFile
+
+module.exports.cli = async () => {
+  const [, , ...argv] = process.argv
+  if (!argv.length) argv.push('-help')
+  let filePath = '',
+    fn
+  try {
+    while (argv.length) {
+      const flag = argv.shift()?.toLowerCase()
+      const value = argv.shift()
+      // if (!value) throw new Error('No value provided');
+      switch (flag) {
+        case '-ts':
+          {
+            const ts = require('typescript')
+            if (!value) throw new Error('No tsconfig.json provided')
+            const config = JSON.parse(await readFile(value, 'utf-8'))
+            if (
+              !config ||
+              typeof config !== 'object' ||
+              !('include' in config) ||
+              !('outDir' in config.compilerOptions)
+            )
+              throw new Error(
+                'Not a valid tsconfig.json - must have include and outDir keys'
+              )
+            await writeFile(
+              config.include.reduce(
+                (_, dir) =>
+                  filePath
+                    .replace(`/${dir}/`, `/${config.compilerOptions.outDir}/`)
+                    .replace('.ts', '.js'),
+                ''
+              ),
+              ts.transpileModule(await readFile(filePath, 'utf-8'), config)
+                .outputText
+            )
+          }
+          break
+        case '-file':
+          filePath = value
+          break
+        case '-fn':
+          fn = value
+          break
+        case '-spec':
+          __separator()
+          console.log(
+            '\x1b[30m',
+            '\x1b[1m',
+            `
+  Write doctest comment (/** */) right above the function declaration
+  \x1b[35m
+  /**
+   * @example          \x1b[30m <<< @example tag required to capture tests \x1b[35m
+   * percent(50, 100)  \x1b[30m <<< test function - call it with paramters \x1b[35m
+   * // 50             \x1b[30m <<< expected result - match after //  \x1b[35m
+   * percent(12, 100)
+   * // 12
+   * percent(20, 300)
+   * // 300 * (20 / 100)
+  */
+  `,
+            '\x1b[34m',
+            `
+export const percent = (percent: number, value: number): number => Math.round(value * (percent / 100));`,
+            '\x1b[33m',
+            `\n^ make sure to export function`,
+            '\x1b[0m'
+          )
+          __separator()
+          return
+        case '-example':
+          return console.log(
+            '\x1b[36m',
+            '\x1b[1m',
+            `
+- prepare ts file
+- run only tests for my func
+- compile ts first using tsconfig.json
+
+-file ./src/file.ts -fn myFunc -ts ./tsconfig.json`,
+            '\x1b[0m'
+          )
+        case '-help':
+          return console.log(
+            '\x1b[36m',
+            '\x1b[1m',
+            `
+------------------------------------
+| -help    |   print this           |
+------------------------------------
+| -file    |   prepare a file       |
+------------------------------------
+| -fn      |  1 function only       |
+------------------------------------
+| -ts      |  compile ts file       |
+------------------------------------
+| -example |  tutorial example      |
+------------------------------------
+| -spec    |  tutorial format       |
+------------------------------------
+
+              `,
+            '\x1b[0m'
+          )
+      }
+    }
+    testFile({
+      filePath,
+      fn,
+    })
+  } catch (err) {
+    console.log('\x1b[34m', '\x1b[0m', '\n\x1b[31m', err, '\x1b[0m')
   }
 }
