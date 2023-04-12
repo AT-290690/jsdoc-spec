@@ -3,7 +3,8 @@ const {
   matchFunctions,
   matchResults,
   equal,
-} = require('../index.js')
+} = require('../../index.js')
+const { success, fail } = require('../testUtils.js')
 const examples = [
   `/**
   * bla bla bla
@@ -93,24 +94,6 @@ const examples = [
 export const add = (a: number, b: number): number => a + b;`,
 ]
 
-const success = (msg) =>
-  console.log(
-    '\x1b[32m',
-    '\x1b[0m',
-    `\x1b[33m\n${msg}\x1b[32m\nPassed!`,
-    '\x1b[0m'
-  )
-const fail = (msg, result, regression) =>
-  console.log(
-    '\x1b[34m',
-    '\x1b[0m',
-    `\x1b[33m\n${msg}\n\x1b[32m\nExpected:\n\n${JSON.stringify(
-      result,
-      null,
-      1
-    )}\n\x1b[31m\nReceived:\n\n${JSON.stringify(regression, null, 1)}`,
-    '\x1b[0m'
-  )
 let a, b, c
 c = 'Parsing functions 1'
 a = matchFunctions(matchComments(examples[0]))

@@ -112,7 +112,7 @@ module.exports.matchFunctions = matchFunctions
 module.exports.matchResults = matchResults
 module.exports.matchFunctionCalls = matchFunctionCalls
 module.exports.equal = __equal
-const testFile = async ({ filePath, fn, ts, equal, success, fail }) => {
+const testFile = async ({ filePath, fn, logging }) => {
   if (!filePath)
     return console.log(
       '\x1b[31m',
@@ -121,13 +121,7 @@ const testFile = async ({ filePath, fn, ts, equal, success, fail }) => {
       'packages/api/src/myFile.js',
       '\x1b[0m'
     )
-  filePath = `./${filePath}`
-  const path =
-    filePath.split('.').pop() === 'ts'
-      ? filePath
-          .replace('.ts', '.js')
-          .replace(`/${ts?.inpDir ?? 'src'}/`, `/${ts?.outDir ?? 'dist'}/`)
-      : filePath
+  const path = `./${filePath}`
   const outputText = await readFile(resolve(path), 'utf-8')
   const comments = matchComments(outputText)
   if (!comments || !comments.length)
@@ -162,46 +156,50 @@ const testFile = async ({ filePath, fn, ts, equal, success, fail }) => {
       '\x1b[0m'
     )
   }
-  __separator()
-  console.log('\x1b[36m', `${fn ? fn : names.join(',')}`, '\x1b[0m')
-  console.log('\x1b[3m', `${normalize(filePath)}`, '\x1b[0m')
+  const isLogging = logging !== 'none'
+  if (isLogging) {
+    __separator()
+    console.log('\x1b[36m', `${fn ? fn : names.join(',')}`, '\x1b[0m')
+    console.log('\x1b[3m', `${normalize(filePath)}`, '\x1b[0m')
+  }
   const source = `(async ()=>{
     const {${imports}}=__imports;
-    __separator();
+    ${isLogging ? '__separator()' : ''}
     let __a,__b,__t;
         ${functions
           .map((x, i) =>
             i === specific[i]
-              ? `__t=__hrtime();\n__a=${x};\n__t=__hrtime(__t)\n__b=${results[i]};__equal(__a,__b)?__success(\`${descriptions[i]}\`,__b,__t):__fail(\`${descriptions[i]}\`,__b,__a,__t);`
+              ? `__t=__hrtime();\n__a=${x};\n__t=__hrtime(__t)\n__b=${results[i]};__equal(__a,__b)?__success(\`${descriptions[i]}\`,__b,__t):__fail(\`${descriptions[i]}\`,__b,__a,__t, __f.push(\`${descriptions[i]}\`));`
               : undefined
           )
           .filter(Boolean)
           .join('\n')}
-    __separator()
+    ${isLogging ? '__separator()' : ''}
     })();\n`
   try {
-    runInContext(
-      source,
-      createContext({
-        __equal: equal ?? __equal,
-        __fail: fail ?? __fail,
-        __success: success ?? __success,
-        __separator,
-        __hrtime: process.hrtime,
-        __imports: await import(resolve(path)),
-      })
-    )
+    const ctx = createContext({
+      __equal,
+      __fail: logging === 'all' || logging === 'failed' ? __fail : () => {},
+      __success: logging === 'all' ? __success : () => {},
+      __separator,
+      __f: [],
+      __hrtime: process.hrtime,
+      __imports: await import(resolve(path)),
+    })
+    runInContext(source, ctx)
+    return ctx.__f
   } catch (err) {
     __fail('Has Errors', 'To Not Throw Errors', err.toString(), [0, 0])
   }
 }
 module.exports.testFile = testFile
-
-module.exports.cli = async () => {
-  const [, , ...argv] = process.argv
+module.exports.cli = async (argv = process.argv.slice(2)) => {
   if (!argv.length) argv.push('-help')
   let filePath = '',
-    fn
+    fn,
+    isTs = false,
+    logging = 'all',
+    tsconfig = ''
   try {
     while (argv.length) {
       const flag = argv.shift()?.toLowerCase()
@@ -210,7 +208,6 @@ module.exports.cli = async () => {
       switch (flag) {
         case '-ts':
           {
-            const ts = require('typescript')
             if (!value) throw new Error('No tsconfig.json provided')
             const config = JSON.parse(await readFile(value, 'utf-8'))
             if (
@@ -222,17 +219,8 @@ module.exports.cli = async () => {
               throw new Error(
                 'Not a valid tsconfig.json - must have include and outDir keys'
               )
-            await writeFile(
-              config.include.reduce(
-                (_, dir) =>
-                  filePath
-                    .replace(`/${dir}/`, `/${config.compilerOptions.outDir}/`)
-                    .replace('.ts', '.js'),
-                ''
-              ),
-              ts.transpileModule(await readFile(filePath, 'utf-8'), config)
-                .outputText
-            )
+            tsconfig = config
+            isTs = true
           }
           break
         case '-file':
@@ -268,6 +256,23 @@ export const percent = (percent: number, value: number): number => Math.round(va
           )
           __separator()
           return
+        case '-logging':
+          {
+            switch (value) {
+              case 'all':
+                break
+              case 'failed':
+                break
+              case 'none':
+                break
+              default:
+                throw new Error(
+                  'Logging parameters are | all | failed | none |'
+                )
+            }
+            logging = value
+          }
+          break
         case '-example':
           return console.log(
             '\x1b[36m',
@@ -304,9 +309,26 @@ export const percent = (percent: number, value: number): number => Math.round(va
           )
       }
     }
-    testFile({
+    if (isTs) {
+      const ts = require('typescript')
+      const compiledPath = tsconfig.include.reduce(
+        (_, dir) =>
+          filePath
+            .replace(`/${dir}/`, `/${tsconfig.compilerOptions.outDir}/`)
+            .replace('.ts', '.js'),
+        ''
+      )
+      await writeFile(
+        compiledPath,
+        ts.transpileModule(await readFile(filePath, 'utf-8'), tsconfig)
+          .outputText
+      )
+      filePath = compiledPath
+    }
+    return testFile({
       filePath,
       fn,
+      logging,
     })
   } catch (err) {
     console.log('\x1b[34m', '\x1b[0m', '\n\x1b[31m', err, '\x1b[0m')

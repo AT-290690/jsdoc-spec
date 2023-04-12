@@ -71,31 +71,12 @@ Compact and to the point log:
 
 <img width="450" alt="Screenshot 2023-04-02 at 20 26 38" src="https://user-images.githubusercontent.com/88512646/229368947-260bfaf2-fed5-41df-9835-5c68a9734bbd.png">
 
-Create an entry point file
-and import the testFile module
+Create an entry point file (jsdoc-spec.js)
+and import the cli ormodule
 
 ```js
-import { testFile } from './jsdoc-spec'
-// filePath - path to the file
-// fn - optional run only tests for a specific function
-
-testFile({ filePath: process.argv[2], fn: process.argv[3] })
-```
-
-```js
-import { testFile } from './jsdoc-spec'
-// works with typescript files (does not compile TS!)
-testFile({ filePath: './src/func.ts' })
-```
-
-```js
-const { testFile } = require('./jsdoc-spec')
-testFile({
-  filePath: './main/func.ts',
-  // provide inpDir and outDir
-  // By default inDir is src and outDir is 'dist'
-  ts: { inpDir: 'main', outDir: 'out' },
-})
+import { cli } from './jsdoc-spec'
+cli()
 ```
 
 Define script in pacakge.json
@@ -103,15 +84,6 @@ Define script in pacakge.json
 ```
 "scripts": {
  "test": "node ./jsdoc-spec.js"
-}
-```
-
-Typescript - you have to compile it first
-
-```
-"scripts": {
- "build": "tsc --build tsconfig.json",
- "test": "yarn build && node ./jsdoc-spec.js"
 }
 ```
 
@@ -125,15 +97,6 @@ Run individual functions:
 
 ```
 yarn test ./percent.js percent
-```
-
-Import cli module for advanced commands in the terminal
-
-In ./doctest.js save this
-
-```js
-import { cli } from './jsdoc-spec'
-cli()
 ```
 
 Run in terminal
@@ -158,45 +121,29 @@ List of commands
 ------------------------------------
 | -ts      |  compile ts file       |
 ------------------------------------
+| -ts      |  compile ts file       |
+------------------------------------
+| -logging |  all | none | failed   |
+------------------------------------
 | -example |  tutorial example      |
 ------------------------------------
 | -spec    |  tutorial format       |
 ------------------------------------
 ```
 
-Equality is deep and strict
+The output of cli is a promisse with an array of failed funciton descriptions
 
-```ts
-type TreeNode = {
-  left: TreeNode
-  right: TreeNode
-  value: number
-}
-/**
-      4
-    /   \
-   2     7
-  / \   / \
- 1  3  6   9
-       4
-     /   \
-   7      2
-  / \    / \
- 9  6   3   1
-* Definition for a binary tree node.
-* @param {TreeNode} root
-* @return {TreeNode} inverted tree
-* @example
-* invertTree({ left: { value: 2, left: { value: 1 }, right: { value: 3 } }, right: { value: 7, left: { value: 6 }, right: { value: 9 } }, value: 4 });
-* // { left: { value: 7, left: { value: 9 }, right: { value: 6 } }, right: { value: 2, left: { value: 3 }, right: { value: 1 } }, value: 4 };
-*/
-export const invertTree = (root: TreeNode): TreeNode => {
-  if (!root || !root.left || !root.right) return root
-  const { left, right } = root
-  root.left = right
-  root.right = left
-  invertTree(root.left)
-  invertTree(root.right)
-  return root
-}
+```js
+import { cli } from './jsdoc-spec'
+// cli uses process.argv.slice(2) if no arguments are provided
+// but you can provide args with an array
+cli([
+  '-file',
+  './tests/cli/mock/test-functions.ts',
+  '-ts',
+  './tests/cli/tsconfig.json',
+  '-logging', // you can chose logging levels
+  'none', // no loggin - we need the output
+]).then((failed) => failed /* ['percent(12, 100)', 'percent((5, 8)'] */)
+// if failed  array is empty then all tests have passed
 ```

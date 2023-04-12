@@ -2,7 +2,7 @@
   "name": "jsdoc-spec",
   "description": "Run tests from comments in JavaScript/Typescript code",
   "author": "AT290690",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "main": "index.js",
   "prettier": {
     "semi": false,
@@ -23,8 +23,10 @@
     "test"
   ],
   "license": "MIT",
-  "devDependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.4"
+  },
   "scripts": {
-    "test": "node tests/test.js"
+    "test": "node tests/parsing/test.js && node tests/cli/test.js"
   }
 }
