@@ -112,7 +112,7 @@ module.exports.matchFunctions = matchFunctions
 module.exports.matchResults = matchResults
 module.exports.matchFunctionCalls = matchFunctionCalls
 module.exports.equal = __equal
-const testFile = async ({ filePath, fn, logging }) => {
+const testFile = async ({ filePath, sourcePath, fn, logging }) => {
   if (!filePath)
     return console.log(
       '\x1b[31m',
@@ -129,7 +129,7 @@ const testFile = async ({ filePath, fn, logging }) => {
       '\x1b[31m',
       'There are no documentation comments in',
       '\x1b[33m',
-      normalize(filePath),
+      normalize(sourcePath),
       '\x1b[0m'
     )
   const functions = matchFunctions(comments)
@@ -160,7 +160,7 @@ const testFile = async ({ filePath, fn, logging }) => {
   if (isLogging) {
     __separator()
     console.log('\x1b[36m', `${fn ? fn : names.join(',')}`, '\x1b[0m')
-    console.log('\x1b[3m', `${normalize(filePath)}`, '\x1b[0m')
+    console.log('\x1b[3m', `${normalize(sourcePath)}`, '\x1b[0m')
   }
   const source = `(async ()=>{
     const {${imports}}=__imports;
@@ -196,6 +196,7 @@ module.exports.testFile = testFile
 module.exports.cli = async (argv = process.argv.slice(2)) => {
   if (!argv.length) argv.push('-help')
   let filePath = '',
+    sourcePath = '',
     fn,
     isTs = false,
     logging = 'all',
@@ -225,6 +226,7 @@ module.exports.cli = async (argv = process.argv.slice(2)) => {
           break
         case '-file':
           filePath = value
+          sourcePath = filePath
           break
         case '-fn':
           fn = value
@@ -323,10 +325,12 @@ export const percent = (percent: number, value: number): number => Math.round(va
         ts.transpileModule(await readFile(filePath, 'utf-8'), tsconfig)
           .outputText
       )
+      sourcePath = filePath
       filePath = compiledPath
     }
     return testFile({
       filePath,
+      sourcePath,
       fn,
       logging,
     })
