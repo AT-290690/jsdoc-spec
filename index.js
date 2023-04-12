@@ -121,7 +121,11 @@ const testFile = async ({ filePath, sourcePath, fn, logging }) => {
       'packages/api/src/myFile.js',
       '\x1b[0m'
     )
-  const path = `./${filePath}`
+  const path = `./${
+    filePath.split('.').pop() === 'ts'
+      ? filePath.replace('/src/', '/dist/').replace('.ts', '.js')
+      : filePath
+  }`
   const outputText = await readFile(resolve(path), 'utf-8')
   const comments = matchComments(outputText)
   if (!comments || !comments.length)

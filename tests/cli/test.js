@@ -6,7 +6,7 @@ const { equal } = require('../../index.js')
   c = 'JS Assertion 1'
   a = await cli([
     '-file',
-    './tests/cli/mock/test-functions.js',
+    './tests/cli/src/test-functions.js',
     '-logging',
     'none',
   ])
@@ -21,7 +21,7 @@ const { equal } = require('../../index.js')
   c = 'JS Assertion 2'
   a = await cli([
     '-file',
-    './tests/cli/mock/test-functions.js',
+    './tests/cli/src/test-functions.js',
     '-logging',
     'none',
     '-fn',
@@ -32,7 +32,7 @@ const { equal } = require('../../index.js')
   c = 'JS Assertion 3'
   a = await cli([
     '-file',
-    './tests/cli/mock/test-functions.js',
+    './tests/cli/src/test-functions.js',
     '-logging',
     'none',
     '-fn',
@@ -44,7 +44,7 @@ const { equal } = require('../../index.js')
   c = 'JS Assertion 4'
   a = await cli([
     '-file',
-    './tests/cli/mock/test-functions.js',
+    './tests/cli/src/test-functions.js',
     '-logging',
     'none',
     '-fn',
@@ -55,7 +55,7 @@ const { equal } = require('../../index.js')
   c = 'TS Assertions 5'
   a = await cli([
     '-file',
-    './tests/cli/mock/test-functions.ts',
+    './tests/cli/src/test-functions.ts',
     '-ts',
     './tests/cli/tsconfig.json',
     '-logging',
@@ -63,15 +63,19 @@ const { equal } = require('../../index.js')
   ])
   b = ['percent(50, 100)']
   equal(a, b) ? success(c) : fail(c, b, a)
-  c = 'TS Assertions 5'
+  c = 'TS Assertions 6'
   a = await cli([
     '-file',
-    './tests/cli/mock/test-tree.ts',
+    './tests/cli/src/test-tree.ts',
     '-ts',
     './tests/cli/tsconfig.json',
     '-logging',
     'none',
   ])
+  b = []
+  equal(a, b) ? success(c) : fail(c, b, a)
+  c = 'TS Assertions 7'
+  a = await cli(['-file', './tests/cli/src/test-tree.ts', '-logging', 'none'])
   b = []
   equal(a, b) ? success(c) : fail(c, b, a)
 })()

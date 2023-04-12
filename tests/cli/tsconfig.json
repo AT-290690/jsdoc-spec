@@ -1,5 +1,5 @@
 {
-  "include": ["mock"],
+  "include": ["src"],
   "compilerOptions": {
     "outDir": "dist",
     "lib": ["es2020"]
