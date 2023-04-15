@@ -1,6 +1,25 @@
 const { readFile, writeFile } = require('fs/promises')
 const { normalize, resolve } = require('path')
 const { runInContext, createContext } = require('vm')
+const CMD_LIST = `
+------------------------------------
+| -help    |   print this           |
+------------------------------------
+| -file    |   prepare a file       |
+------------------------------------
+| -fn      |  1 function only       |
+------------------------------------
+| -ts      |  compile ts file       |
+------------------------------------
+| -ts      |  compile ts file       |
+------------------------------------
+| -logging |  all | none | failed   |
+------------------------------------
+| -example |  tutorial example      |
+------------------------------------
+| -spec    |  tutorial format       |
+------------------------------------
+`
 const __equal = (a, b) => {
   if (a === b) return true
   if (a && b && typeof a == 'object' && typeof b == 'object') {
@@ -168,7 +187,7 @@ const testFile = async ({ filePath, sourcePath, fn, logging }) => {
   }
   const source = `(async ()=>{
     const {${imports}}=__imports;
-    ${isLogging ? '__separator()' : ''}
+    ${isLogging ? '__separator()\n' : ''}
     let __a,__b,__t;
         ${functions
           .map((x, i) =>
@@ -178,14 +197,23 @@ const testFile = async ({ filePath, sourcePath, fn, logging }) => {
           )
           .filter(Boolean)
           .join('\n')}
-    ${isLogging ? '__separator()' : ''}
+    ${
+      isLogging
+        ? 'if(__f.length === 0)__on_pass()\nelse\n__on_fail()\n__separator()'
+        : ''
+    }
     })();\n`
   try {
     const ctx = createContext({
       __equal,
+      __nl: () => console.log(''),
       __fail: logging === 'all' || logging === 'failed' ? __fail : () => {},
       __success: logging === 'all' ? __success : () => {},
       __separator,
+      __on_pass: () =>
+        console.log('\x1b[32m', '\n  All tests passed!\n', '\x1b[0m'),
+      __on_fail: () =>
+        console.log('\x1b[31m', '\n  Some tests failed!\n', '\x1b[0m'),
       __f: [],
       __hrtime: process.hrtime,
       __imports: await import(resolve(path)),
@@ -209,7 +237,6 @@ module.exports.cli = async (argv = process.argv.slice(2)) => {
     while (argv.length) {
       const flag = argv.shift()?.toLowerCase()
       const value = argv.shift()
-      // if (!value) throw new Error('No value provided');
       switch (flag) {
         case '-ts':
           {
@@ -272,9 +299,12 @@ export const percent = (percent: number, value: number): number => Math.round(va
               case 'none':
                 break
               default:
-                throw new Error(
-                  'Logging parameters are | all | failed | none |'
+                console.log(
+                  '\x1b[31m',
+                  'Logging parameters are | all | failed | none |',
+                  '\x1b[0m'
                 )
+                return
             }
             logging = value
           }
@@ -292,27 +322,7 @@ export const percent = (percent: number, value: number): number => Math.round(va
             '\x1b[0m'
           )
         case '-help':
-          return console.log(
-            '\x1b[36m',
-            '\x1b[1m',
-            `
-------------------------------------
-| -help    |   print this           |
-------------------------------------
-| -file    |   prepare a file       |
-------------------------------------
-| -fn      |  1 function only       |
-------------------------------------
-| -ts      |  compile ts file       |
-------------------------------------
-| -example |  tutorial example      |
-------------------------------------
-| -spec    |  tutorial format       |
-------------------------------------
-
-              `,
-            '\x1b[0m'
-          )
+          return console.log('\x1b[36m', '\x1b[1m', CMD_LIST, '\x1b[0m')
       }
     }
     if (isTs) {
