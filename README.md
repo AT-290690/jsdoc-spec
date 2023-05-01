@@ -141,6 +141,8 @@ List of commands
 ------------------------------------
 | -example |  tutorial example      |
 ------------------------------------
+| -formula |  tutorial generate     |
+------------------------------------
 | -spec    |  tutorial format       |
 ------------------------------------
 ```
