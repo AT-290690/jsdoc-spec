@@ -13,9 +13,13 @@ const CMD_LIST = `
 ------------------------------------
 | -ts      |  compile ts file       |
 ------------------------------------
+| -gen    |   generate tests        |
+------------------------------------
 | -logging |  all | none | failed   |
 ------------------------------------
 | -example |  tutorial example      |
+------------------------------------
+| -formula |  tutorial gen          |
 ------------------------------------
 | -spec    |  tutorial format       |
 ------------------------------------
@@ -126,6 +130,13 @@ const matchFunctionCalls = (functions) => [
       return acc
     }, new Set()),
 ]
+const combine = ([head, ...[headTail, ...tailTail]]) => {
+  if (!headTail) return head
+  const combined = headTail.reduce((acc, x) => {
+    return acc.concat(head.map((h) => `${h}, ${x}`))
+  }, [])
+  return combine([combined, ...tailTail])
+}
 module.exports.matchComments = matchComments
 module.exports.matchFunctions = matchFunctions
 module.exports.matchResults = matchResults
@@ -262,6 +273,26 @@ module.exports.cli = async (argv = process.argv.slice(2)) => {
         case '-fn':
           fn = value
           break
+        case '-formula':
+          __separator()
+          console.log(
+            '\x1b[30m',
+            '\x1b[1m',
+            `
+  Call \x1b[32m-gen\x1b[0m with an \x1b[34margument\x1b[0m surrounded in \x1b[35mquotes
+  \x1b[32m-gen \x1b[35m"percent(\x1b[34m0; 50; 100 \x1b[33m|\x1b[34m 100; 200\x1b[35m)"
+  \x1b[0m// \x1b[31m'?'\x1b[0m
+  `,
+            '\x1b[34m',
+            `\n ; is variation separator`,
+            '\x1b[33m',
+            `\n | is arguments separator`,
+            '\x1b[31m',
+            `\n ? is be the default result`,
+            '\x1b[0m'
+          )
+          __separator()
+          return
         case '-spec':
           __separator()
           console.log(
@@ -321,6 +352,31 @@ export const percent = (percent: number, value: number): number => Math.round(va
 -file ./src/file.ts -fn myFunc -ts ./tsconfig.json`,
             '\x1b[0m'
           )
+        case '-gen': {
+          const functionName = value.match(new RegExp(/^(.*?)(?=(\())/gm)).pop()
+          const argsRaw = value.split(functionName)[1]
+          const argsPristine = argsRaw
+            .substring(1, argsRaw.length - 1)
+            .split('|')
+            .map((x) => x.trim())
+          const args = argsPristine.map((x) =>
+            x.split(';').map((x) => x.trim())
+          )
+          __separator()
+          console.log('\x1b[0m *\x1b[36m @example')
+          combine(args).forEach((x) => {
+            console.log(
+              '\x1b[0m * \x1b[35m' +
+                functionName +
+                '(\x1b[33m' +
+                x +
+                '\x1b[35m)'
+            )
+            console.log("\x1b[30m * // \x1b[31m'?'\x1b[0m")
+          })
+          __separator()
+          return
+        }
         case '-help':
           return console.log('\x1b[36m', '\x1b[1m', CMD_LIST, '\x1b[0m')
       }

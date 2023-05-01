@@ -109,6 +109,18 @@ Run in terminal
 node ./doctest.js -file ./src/file.ts -fn myFunc -ts ./tsconfig.json`,
 ```
 
+Generate test cases
+
+```
+Call -gen with an argument surrounded in quotes
+  -gen "percent(0; 50; 100 | 100; 200)"
+  // '?'
+
+ ; is variation separator
+ | is arguments separator
+ ? is be the default result
+```
+
 List of commands
 
 ```
@@ -122,6 +134,8 @@ List of commands
 | -ts      |  compile ts file       |
 ------------------------------------
 | -ts      |  compile ts file       |
+------------------------------------
+| -gen    |   generate tests        |
 ------------------------------------
 | -logging |  all | none | failed   |
 ------------------------------------
