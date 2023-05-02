@@ -139,6 +139,8 @@ List of commands
 ------------------------------------
 | -logging |  all | none | failed   |
 ------------------------------------
+| -indent  | indentation 0|1|2|3|4..|
+------------------------------------
 | -example |  tutorial example      |
 ------------------------------------
 | -formula |  tutorial generate     |

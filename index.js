@@ -17,6 +17,8 @@ const CMD_LIST = `
 ------------------------------------
 | -logging |  all | none | failed   |
 ------------------------------------
+| -indent  | indentation 0|1|2|3|4..|
+------------------------------------
 | -example |  tutorial example      |
 ------------------------------------
 | -formula |  tutorial gen          |
@@ -84,16 +86,16 @@ const __stringify = (_, value) => {
       return value
   }
 }
-const __success = (msg, result, time) =>
+const __success = (msg, result, time, indent = 0) =>
   console.log(
     '\x1b[32m',
     '\x1b[0m',
     `\x1b[33m${msg} \x1b[36m${__formatPerf(
       time
-    )}\n\x1b[32m   + ${JSON.stringify(result, __stringify)}`,
+    )}\n\x1b[32m   + ${JSON.stringify(result, __stringify, indent ? 1 : 0)}`,
     '\x1b[0m'
   )
-const __fail = (msg, result, regression, time) =>
+const __fail = (msg, result, regression, time, indent = 0) =>
   console.log(
     '\x1b[34m',
     '\x1b[0m',
@@ -102,8 +104,12 @@ const __fail = (msg, result, regression, time) =>
     )}\n\x1b[32m   + ${JSON.stringify(
       result,
       __stringify,
-      1
-    )} \n\x1b[31m   - ${JSON.stringify(regression, __stringify, 1)}`,
+      indent ? 1 : 0
+    )} \n\x1b[31m   - ${JSON.stringify(
+      regression,
+      __stringify,
+      indent ? 1 : 0
+    )}`,
     '\x1b[0m'
   )
 const __separator = () => console.log('-'.repeat(process.stdout.columns))
@@ -142,7 +148,7 @@ module.exports.matchFunctions = matchFunctions
 module.exports.matchResults = matchResults
 module.exports.matchFunctionCalls = matchFunctionCalls
 module.exports.equal = __equal
-const testFile = async ({ filePath, sourcePath, fn, logging }) => {
+const testFile = async ({ filePath, sourcePath, fn, logging, indent }) => {
   if (!filePath)
     return console.log(
       '\x1b[31m',
@@ -203,7 +209,7 @@ const testFile = async ({ filePath, sourcePath, fn, logging }) => {
         ${functions
           .map((x, i) =>
             i === specific[i]
-              ? `__t=__hrtime();\n__a=${x};\n__t=__hrtime(__t)\n__b=${results[i]};__equal(__a,__b)?__success(\`${descriptions[i]}\`,__b,__t):__fail(\`${descriptions[i]}\`,__b,__a,__t, __f.push(\`${descriptions[i]}\`));`
+              ? `__t=__hrtime();\n__a=${x};\n__t=__hrtime(__t)\n__b=${results[i]};__equal(__a,__b)?__success(\`${descriptions[i]}\`,__b,__t, __indent):__fail(\`${descriptions[i]}\`,__b,__a,__t, __indent, __f.push(\`${descriptions[i]}\`));`
               : undefined
           )
           .filter(Boolean)
@@ -217,6 +223,7 @@ const testFile = async ({ filePath, sourcePath, fn, logging }) => {
   try {
     const ctx = createContext({
       __equal,
+      __indent: indent,
       __nl: () => console.log(''),
       __fail: logging === 'all' || logging === 'failed' ? __fail : () => {},
       __success: logging === 'all' ? __success : () => {},
@@ -243,7 +250,8 @@ module.exports.cli = async (argv = process.argv.slice(2)) => {
     fn,
     isTs = false,
     logging = 'all',
-    tsconfig = ''
+    tsconfig = '',
+    indent = 0
   try {
     while (argv.length) {
       const flag = argv.shift()?.toLowerCase()
@@ -352,6 +360,9 @@ export const percent = (percent: number, value: number): number => Math.round(va
 -file ./src/file.ts -fn myFunc -ts ./tsconfig.json`,
             '\x1b[0m'
           )
+        case '-indent':
+          indent = +value
+          break
         case '-gen': {
           const functionName = value.match(new RegExp(/^(.*?)(?=(\())/gm)).pop()
           const argsRaw = value.split(functionName)[1]
@@ -403,6 +414,7 @@ export const percent = (percent: number, value: number): number => Math.round(va
       sourcePath,
       fn,
       logging,
+      indent,
     })
   } catch (err) {
     console.log('\x1b[34m', '\x1b[0m', '\n\x1b[31m', err, '\x1b[0m')
