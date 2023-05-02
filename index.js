@@ -86,13 +86,22 @@ const __stringify = (_, value) => {
       return value
   }
 }
+const __log = (msg, _0, regression, _1, indent = 0) =>
+  console.log(
+    `\x1b[30m * \x1b[33m${msg}\n\x1b[30m * // ${JSON.stringify(
+      regression,
+      __stringify,
+      indent
+    )}`,
+    '\x1b[0m'
+  )
 const __success = (msg, result, time, indent = 0) =>
   console.log(
     '\x1b[32m',
     '\x1b[0m',
     `\x1b[33m${msg} \x1b[36m${__formatPerf(
       time
-    )}\n\x1b[32m   + ${JSON.stringify(result, __stringify, indent ? 1 : 0)}`,
+    )}\n\x1b[32m   + ${JSON.stringify(result, __stringify, indent)}`,
     '\x1b[0m'
   )
 const __fail = (msg, result, regression, time, indent = 0) =>
@@ -104,12 +113,8 @@ const __fail = (msg, result, regression, time, indent = 0) =>
     )}\n\x1b[32m   + ${JSON.stringify(
       result,
       __stringify,
-      indent ? 1 : 0
-    )} \n\x1b[31m   - ${JSON.stringify(
-      regression,
-      __stringify,
-      indent ? 1 : 0
-    )}`,
+      indent
+    )} \n\x1b[31m   - ${JSON.stringify(regression, __stringify, indent)}`,
     '\x1b[0m'
   )
 const __separator = () => console.log('-'.repeat(process.stdout.columns))
@@ -148,7 +153,15 @@ module.exports.matchFunctions = matchFunctions
 module.exports.matchResults = matchResults
 module.exports.matchFunctionCalls = matchFunctionCalls
 module.exports.equal = __equal
-const testFile = async ({ filePath, sourcePath, fn, logging, indent }) => {
+const testFile = async ({
+  filePath,
+  sourcePath,
+  fn,
+  logging,
+  indent,
+  inMemoryComments,
+  logPlainText,
+}) => {
   if (!filePath)
     return console.log(
       '\x1b[31m',
@@ -162,7 +175,9 @@ const testFile = async ({ filePath, sourcePath, fn, logging, indent }) => {
       ? filePath.replace('/src/', '/dist/').replace('.ts', '.js')
       : filePath
   }`
-  const outputText = await readFile(resolve(path), 'utf-8')
+  const outputText = inMemoryComments
+    ? inMemoryComments
+    : await readFile(resolve(path), 'utf-8')
   const comments = matchComments(outputText)
   if (!comments || !comments.length)
     return console.log(
@@ -223,15 +238,26 @@ const testFile = async ({ filePath, sourcePath, fn, logging, indent }) => {
   try {
     const ctx = createContext({
       __equal,
-      __indent: indent,
+      __indent: +indent,
       __nl: () => console.log(''),
-      __fail: logging === 'all' || logging === 'failed' ? __fail : () => {},
+      __fail:
+        logging === 'all' || logging === 'failed'
+          ? logPlainText
+            ? __log
+            : __fail
+          : () => {},
       __success: logging === 'all' ? __success : () => {},
       __separator,
       __on_pass: () =>
         console.log('\x1b[32m', '\n  All tests passed!\n', '\x1b[0m'),
-      __on_fail: () =>
-        console.log('\x1b[31m', '\n  Some tests failed!\n', '\x1b[0m'),
+      __on_fail: logPlainText
+        ? () =>
+            console.log(
+              '\x1b[35m',
+              '\n  These are logged results!\n',
+              '\x1b[0m'
+            )
+        : () => console.log('\x1b[31m', '\n  Some tests failed!\n', '\x1b[0m'),
       __f: [],
       __hrtime: process.hrtime,
       __imports: await import(resolve(path)),
@@ -251,7 +277,9 @@ module.exports.cli = async (argv = process.argv.slice(2)) => {
     isTs = false,
     logging = 'all',
     tsconfig = '',
-    indent = 0
+    indent = 0,
+    inMemoryComments = '',
+    logPlainText = false
   try {
     while (argv.length) {
       const flag = argv.shift()?.toLowerCase()
@@ -288,15 +316,15 @@ module.exports.cli = async (argv = process.argv.slice(2)) => {
             '\x1b[1m',
             `
   Call \x1b[32m-gen\x1b[0m with an \x1b[34margument\x1b[0m surrounded in \x1b[35mquotes
-  \x1b[32m-gen \x1b[35m"percent(\x1b[34m0; 50; 100 \x1b[33m|\x1b[34m 100; 200\x1b[35m)"
+  \x1b[32m-gen \x1b[35m"percent(\x1b[34m0 | 50 | 100\x1b[33m ;\x1b[34m 100 | 200\x1b[35m)"
   \x1b[0m// \x1b[31m'?'\x1b[0m
   `,
             '\x1b[34m',
-            `\n ; is variation separator`,
+            `\n | variation separator`,
             '\x1b[33m',
-            `\n | is arguments separator`,
+            `\n ; arguments separator`,
             '\x1b[31m',
-            `\n ? is be the default result`,
+            `\n ? default result`,
             '\x1b[0m'
           )
           __separator()
@@ -364,29 +392,47 @@ export const percent = (percent: number, value: number): number => Math.round(va
           indent = +value
           break
         case '-gen': {
-          const functionName = value.match(new RegExp(/^(.*?)(?=(\())/gm)).pop()
+          const matches = value.match(new RegExp(/^(.*?)(?=(\())/gm))
+          if (matches == undefined)
+            return console.log(
+              '\x1b[31m',
+              'No generation formula provided!',
+              '\x1b[0m'
+            )
+          const functionName = matches.pop()
           const argsRaw = value.split(functionName)[1]
           const argsPristine = argsRaw
             .substring(1, argsRaw.length - 1)
-            .split('|')
+            .split(';')
             .map((x) => x.trim())
           const args = argsPristine.map((x) =>
-            x.split(';').map((x) => x.trim())
+            x.split('|').map((x) => x.trim())
           )
-          __separator()
-          console.log('\x1b[0m *\x1b[36m @example')
-          combine(args).forEach((x) => {
-            console.log(
-              '\x1b[0m * \x1b[35m' +
-                functionName +
-                '(\x1b[33m' +
-                x +
-                '\x1b[35m)'
+          if (!filePath) {
+            __separator()
+            console.log('\x1b[30m *\x1b[36m @example')
+            combine(args).forEach((x) => {
+              console.log(
+                '\x1b[30m * \x1b[35m' +
+                  functionName +
+                  '(\x1b[33m' +
+                  x +
+                  '\x1b[35m)'
+              )
+              console.log("\x1b[30m * // \x1b[31m'?'\x1b[0m")
+            })
+            __separator()
+            return
+          } else {
+            inMemoryComments = `/**\n * Tests for ${functionName}\n * @example\n${combine(
+              args
             )
-            console.log("\x1b[30m * // \x1b[31m'?'\x1b[0m")
-          })
-          __separator()
-          return
+              .map((x) => `* ${functionName}(${x})\n * // '?'`)
+              .join('\n')}\n*/`
+            fn = functionName
+            logPlainText = true
+          }
+          break
         }
         case '-help':
           return console.log('\x1b[36m', '\x1b[1m', CMD_LIST, '\x1b[0m')
@@ -410,6 +456,8 @@ export const percent = (percent: number, value: number): number => Math.round(va
       filePath = compiledPath
     }
     return testFile({
+      logPlainText,
+      inMemoryComments,
       filePath,
       sourcePath,
       fn,

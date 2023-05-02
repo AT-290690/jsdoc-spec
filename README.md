@@ -113,13 +113,15 @@ Generate test cases
 
 ```
 Call -gen with an argument surrounded in quotes
-  -gen "percent(0; 50; 100 | 100; 200)"
+  -gen "percent(0 | 50 | 100 ; 100 | 200)"
   // '?'
 
  ; is variation separator
  | is arguments separator
  ? is be the default result
 ```
+
+^ if no file is provided the cases will use '?' as a default result
 
 List of commands
 
