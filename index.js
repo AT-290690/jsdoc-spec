@@ -5,11 +5,11 @@ const CMD_LIST = `
 ------------------------------------
 | -help    |   print this           |
 ------------------------------------
+| -about    |  print tool info      |
+------------------------------------
 | -file    |   prepare a file       |
 ------------------------------------
 | -fn      |  1 function only       |
-------------------------------------
-| -ts      |  compile ts file       |
 ------------------------------------
 | -ts      |  compile ts file       |
 ------------------------------------
@@ -17,13 +17,13 @@ const CMD_LIST = `
 ------------------------------------
 | -logging |  all | none | failed   |
 ------------------------------------
-| -indent  | indentation 0|1|2|3|4..|
+| -indent  | indentation 0|1|2|3|4  |
 ------------------------------------
 | -example |  tutorial example      |
 ------------------------------------
-| -formula |  tutorial gen          |
+| -formula |  print tutorial gen    |
 ------------------------------------
-| -spec    |  tutorial format       |
+| -spec    |  print tutorial format |
 ------------------------------------
 `
 const __equal = (a, b) => {
@@ -203,14 +203,13 @@ const testFile = async ({
   const names = matchFunctionCalls(descriptions)
   const results = matchResults(comments)
   const imports = (fn ? names.filter((x) => x === fn) : names).join(',')
-  if (!imports.length) {
+  if (!imports.length)
     return console.log(
       '\x1b[31m',
       '\x1b[1m',
       'There is nothing to test',
       '\x1b[0m'
     )
-  }
   const isLogging = logging !== 'none'
   if (isLogging) {
     __separator()
@@ -376,6 +375,23 @@ export const percent = (percent: number, value: number): number => Math.round(va
             logging = value
           }
           break
+        case '-about':
+          return console.log(
+            '\x1b[32m',
+            '\x1b[1m',
+            `
+JSDoc spec\n
+This package is a versatile tool that can automatically turn your jsDoc comments into executable tests. 
+With its input variation generation feature, you can easily generate tests with multiple possible input values.\n
+This package can be used both as a command-line interface (CLI) tool or as a library that can be integrated into your code. 
+It is an efficient and time-saving tool that helps ensure the quality and reliability of your code.\n
+By utilizing this tool, you can streamline your testing process and easily maintain test suites alongside your codebase.
+With its ease of use and flexibility, it is a valuable addition to any developer's toolkit.\n
+Thank you for choosing jsdoc-spec.
+Happy Hacking!
+`,
+            '\x1b[0m'
+          )
         case '-example':
           return console.log(
             '\x1b[36m',
