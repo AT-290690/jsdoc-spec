@@ -123,11 +123,38 @@ Call -gen with an argument surrounded in quotes
 
 ^ if no file is provided the cases will use '?' as a default result
 
+If file is provided then a shorthand result will be logged at the bottom
+
+```
+percent(0 | 50 | 100; 25 | 100)
+// 0 | 13 | 25 | 0 | 50 | 100
+```
+
+This then can be used as a regular test case
+The parser will turn it into this:
+
+```
+* percent(0, 25)
+* // 0
+* percent(50, 25)
+* // 13
+* percent(100, 25)
+* // 25
+* percent(0, 100)
+* // 0
+* percent(50, 100)
+* // 50
+* percent(100, 100)
+* // 100
+```
+
 List of commands
 
 ```
 ------------------------------------
 | -help    |   print this           |
+------------------------------------
+| -about    |  print tool info      |
 ------------------------------------
 | -file    |   prepare a file       |
 ------------------------------------
@@ -135,19 +162,17 @@ List of commands
 ------------------------------------
 | -ts      |  compile ts file       |
 ------------------------------------
-| -ts      |  compile ts file       |
-------------------------------------
 | -gen    |   generate tests        |
 ------------------------------------
 | -logging |  all | none | failed   |
 ------------------------------------
-| -indent  | indentation 0|1|2|3|4..|
+| -indent  | indentation 0|1|2|3|4  |
 ------------------------------------
 | -example |  tutorial example      |
 ------------------------------------
-| -formula |  tutorial generate     |
+| -formula |  print tutorial gen    |
 ------------------------------------
-| -spec    |  tutorial format       |
+| -spec    |  print tutorial format |
 ------------------------------------
 ```
 

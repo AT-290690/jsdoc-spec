@@ -92,6 +92,22 @@ const examples = [
 * // 119
 */
 export const add = (a: number, b: number): number => a + b;`,
+  `/**
+* bla bla bla
+* jhjhjhjhh  
+* // sakdjkasdjkasd
+* @example
+* percent(50, 100)
+* // 52
+* percent(12, 100)
+* // 12
+* percent(20, 300)
+* // 300 * (20 / 100)
+* percent(0 | 50 | 75; 10 | 50 | 100 | 200)
+* // 0 | 5 | 8 | 0 | 25 | 38 | 0 | 50 | 75 | 0 | 100 | 150
+*/
+export const percent = (percent: number, value: number): number =>
+  Math.round(value * (percent / 100))`,
 ]
 
 let a, b, c
@@ -165,6 +181,26 @@ equal(a, b) ? success(c) : fail(c, b, a)
 c = 'Parsing results 5'
 a = matchResults(matchComments(examples[4]))
 b = ['3', '8', '9', '13', '18', '119']
+equal(a, b) ? success(c) : fail(c, b, a)
+c = 'Parsing results 6'
+a = matchResults(matchComments(examples[5]))
+b = [
+  '52',
+  '12',
+  '300 * (20 / 100)',
+  '0',
+  '5',
+  '8',
+  '0',
+  '25',
+  '38',
+  '0',
+  '50',
+  '75',
+  '0',
+  '100',
+  '150',
+]
 equal(a, b) ? success(c) : fail(c, b, a)
 c = 'Equality'
 a = [

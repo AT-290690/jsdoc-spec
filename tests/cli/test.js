@@ -78,4 +78,15 @@ const { equal } = require('../../index.js')
   a = await cli(['-file', './tests/cli/src/test-tree.ts', '-logging', 'none'])
   b = []
   equal(a, b) ? success(c) : fail(c, b, a)
+  c = 'TS Assertions 8'
+  a = await cli([
+    '-file',
+    './tests/cli/src/test-functions-gen.ts',
+    '-logging',
+    'none',
+    '-ts',
+    './tests/cli/tsconfig.json',
+  ])
+  b = ['percent(50, 100)']
+  equal(a, b) ? success(c) : fail(c, b, a)
 })()
