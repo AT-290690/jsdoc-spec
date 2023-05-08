@@ -194,6 +194,39 @@ const CMD_LIST = `
     }, [])
     return combine([combined, ...tailTail])
   },
+  logGenerated = (name, ...args) =>
+    console.log(
+      '\x1b[43m',
+      `${name}(${args.map((x) =>
+        x
+          .map(
+            (y) =>
+              `${y
+                .map(
+                  (z) =>
+                    `\x1b[0m\x1b[44m${JSON.stringify(z, __stringify)}\x1b[45m`
+                )
+                .join(' | ')}\x1b[0m\x1b[41m`
+          )
+          .join(' ; ')
+      )}\x1b[0m\x1b[43m)`,
+      '\x1b[0m'
+    ),
+  generator = (name, memo = []) => {
+    const generate = (...args) => {
+      if (args.length === 0) {
+        __separator()
+        console.log('')
+        logGenerated(name.trim(), memo)
+        console.log('')
+        __separator()
+      } else {
+        memo.push([...args])
+        return generate
+      }
+    }
+    return generate
+  },
   testFile = async ({
     filePath,
     sourcePath,
@@ -529,3 +562,4 @@ module.exports.matchFunctions = matchFunctions
 module.exports.matchResults = matchResults
 module.exports.matchFunctionCalls = matchFunctionCalls
 module.exports.equal = __equal
+module.exports.generator = generator
