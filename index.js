@@ -287,11 +287,13 @@ const CMD_LIST = `
           console.log('\x1b[32m', '\n  All tests passed!\n', '\x1b[0m'),
         __on_fail: logPlainText
           ? () => {
+              __separator()
               console.log(
-                '\x1b[35m',
-                '\n  These are logged results!\n',
-                '\x1b[0m'
+                `\x1b[30m* // ${output
+                  .map(() => '"?"')
+                  .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}\x1b[0m`
               )
+              __separator()
               console.log(`\x1b[33m* ${originalValue}`)
               console.log(
                 `\x1b[30m* // ${output.join(
@@ -454,10 +456,12 @@ Happy Hacking!
           break
         case '-gen': {
           const { functionName, args } = decodeGenerated(value)
+          originalValue = value
+          const cartesianProduct = combine(args)
           if (!filePath) {
             __separator()
             console.log('\x1b[30m *\x1b[36m @example')
-            combine(args).forEach((x) => {
+            cartesianProduct.forEach((x) => {
               console.log(
                 '\x1b[30m * \x1b[35m' +
                   functionName +
@@ -468,10 +472,16 @@ Happy Hacking!
               console.log("\x1b[30m * // \x1b[31m'?'\x1b[0m")
             })
             __separator()
+            console.log('\x1b[30m*\x1b[36m @example')
+            console.log(`\x1b[33m* ${originalValue}`)
+            console.log(
+              `\x1b[30m* // ${cartesianProduct
+                .map(() => '"?"')
+                .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}\x1b[0m`
+            )
             return
           } else {
-            originalValue = value
-            inMemoryComments = `/**\n* @example\n${combine(args)
+            inMemoryComments = `/**\n* @example\n${cartesianProduct
               .map((x) => `* ${functionName}(${x})\n * // '?'`)
               .join('\n')}\n*/`
             fn = functionName
