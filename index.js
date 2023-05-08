@@ -196,20 +196,15 @@ const CMD_LIST = `
   },
   logGenerated = (name, ...args) =>
     console.log(
-      '\x1b[43m',
-      `${name}(${args.map((x) =>
+      '\x1b[34m',
+      `'${name}(${args.map((x) =>
         x
           .map(
             (y) =>
-              `${y
-                .map(
-                  (z) =>
-                    `\x1b[0m\x1b[44m${JSON.stringify(z, __stringify)}\x1b[45m`
-                )
-                .join(' | ')}\x1b[0m\x1b[41m`
+              `${y.map((z) => `${JSON.stringify(z, __stringify)}`).join(' | ')}`
           )
           .join(' ; ')
-      )}\x1b[0m\x1b[43m)`,
+      )})'`,
       '\x1b[0m'
     ),
   generator = (name, memo = []) => {
