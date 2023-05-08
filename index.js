@@ -124,7 +124,7 @@ const CMD_LIST = `
       )}`,
       '\x1b[0m'
     )
-    output.push(regression)
+    output.push(JSON.stringify(regression, __stringify, 0))
   },
   __success = (msg, result, time, indent = 0) =>
     console.log(
@@ -292,8 +292,12 @@ const CMD_LIST = `
                 '\n  These are logged results!\n',
                 '\x1b[0m'
               )
-              console.log('\x1b[33m', originalValue)
-              console.log('\x1b[30m', `// ${output.join(' | ')}`, '\x1b[0m')
+              console.log(`\x1b[33m* ${originalValue}`)
+              console.log(
+                `\x1b[30m* // ${output.join(
+                  ` ${GENERATED_VARIANTS_SEPARATOR} `
+                )}\x1b[0m`
+              )
             }
           : () =>
               console.log('\x1b[31m', '\n  Some tests failed!\n', '\x1b[0m'),

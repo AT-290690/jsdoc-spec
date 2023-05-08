@@ -20,6 +20,8 @@ type TreeNode = {
 * @example
 * invertTree({ left: { value: 2, left: { value: 1 }, right: { value: 3 } }, right: { value: 7, left: { value: 6 }, right: { value: 9 } }, value: 4 });
 * // { left: { value: 7, left: { value: 9 }, right: { value: 6 } }, right: { value: 2, left: { value: 3 }, right: { value: 1 } }, value: 4 };
+* invertTree({ left: { value: 2, left: { value: 1 }, right: { value: 3 } }, right: { value: 7, left: { value: 6 }, right: { value: 9 } }, value: 4 } | {} | {left: {}, right: {}} | {left: {value:1}, right: {value:2}})
+* // {"left":{"value":7,"left":{"value":9},"right":{"value":6}},"right":{"value":2,"left":{"value":3},"right":{"value":1}},"value":4} | {} | {"left":{},"right":{}} | {"left":{"value":2},"right":{"value":1}}
 */
 export const invertTree = (root: TreeNode): TreeNode => {
   if (!root || !root.left || !root.right) return root
