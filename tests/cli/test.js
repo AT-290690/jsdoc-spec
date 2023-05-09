@@ -89,4 +89,13 @@ const { equal } = require('../../index.js')
   ])
   b = ['percent(50, 100)']
   equal(a, b) ? success(c) : fail(c, b, a)
+  c = 'JS Assertions 9'
+  a = await cli([
+    '-file',
+    './tests/cli/src/test-functions-gen-tokens.js',
+    '-logging',
+    'none',
+  ])
+  b = ['pipeToDolars("|")', 'pipeToDolars("|||")', 'pipeToDolars("ab|c|d")']
+  equal(a, b) ? success(c) : fail(c, b, a)
 })()

@@ -35,6 +35,7 @@ const CMD_LIST = `
       '\x1b[0m'
     ),
   GENERATED_VARIANTS_SEPARATOR = '|',
+  GENERATED_ARGUMENTS_SEPARATOR = ';',
   __equal = (a, b) => {
     if (a === b) return true
     if (a && b && typeof a == 'object' && typeof b == 'object') {
@@ -95,6 +96,11 @@ const CMD_LIST = `
         return value
     }
   },
+  isGenerator = (fn) =>
+    fn
+      .replace(/"[^"]*"/g, '')
+      .replace(/'[^']*'/g, '')
+      .includes(GENERATED_VARIANTS_SEPARATOR),
   splitPipes = (x) =>
     x.split(GENERATED_VARIANTS_SEPARATOR).map((x) => x.trim()),
   decodeGenerated = (value) => {
@@ -106,10 +112,10 @@ const CMD_LIST = `
         '\x1b[0m'
       )
     const functionName = matches.pop(),
-      argsRaw = value.split(functionName)[1],
+      argsRaw = value.substring(functionName.length),
       argsPristine = argsRaw
         .substring(1, argsRaw.length - 1)
-        .split(';')
+        .split(GENERATED_ARGUMENTS_SEPARATOR)
         .map((x) => x.trim()),
       args = argsPristine.map((x) => splitPipes(x))
     return { functionName, args }
@@ -157,8 +163,7 @@ const CMD_LIST = `
       .filter(Boolean)
       .map((x) => x.trim())
       .reduce((acc, f) => {
-        const isGenerated = f.includes(GENERATED_VARIANTS_SEPARATOR)
-        if (isGenerated) {
+        if (isGenerator(f)) {
           const { functionName, args } = decodeGenerated(f)
           const genFn = combine(args).map((x) => `${functionName}(${x})`)
           acc.push(...genFn)
@@ -173,8 +178,7 @@ const CMD_LIST = `
       .filter(Boolean)
       .map((x) => x.trim())
       .reduce((acc, r) => {
-        const isGenerated = r.includes(GENERATED_VARIANTS_SEPARATOR)
-        if (isGenerated) acc.push(...splitPipes(r))
+        if (isGenerator(r)) acc.push(...splitPipes(r))
         else acc.push(r)
         return acc
       }, []),
@@ -194,19 +198,19 @@ const CMD_LIST = `
     }, [])
     return combine([combined, ...tailTail])
   },
-  logGenerated = (name, ...args) =>
-    console.log(
-      '\x1b[34m',
-      `'${name}(${args.map((x) =>
-        x
-          .map(
-            (y) =>
-              `${y.map((z) => `${JSON.stringify(z, __stringify)}`).join(' | ')}`
-          )
-          .join(' ; ')
-      )})'`,
-      '\x1b[0m'
-    ),
+  logGenerated = (name, ...args) => {
+    const output = `'${name}(${args.map((x) =>
+      x
+        .map(
+          (y) =>
+            `${y
+              .map((z) => `${JSON.stringify(z, __stringify)}`)
+              .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}`
+        )
+        .join(GENERATED_ARGUMENTS_SEPARATOR)
+    )})'`
+    console.log('\x1b[34m', output, '\x1b[0m')
+  },
   generator = (name, memo = []) => {
     const generate = (...args) => {
       if (args.length === 0) {

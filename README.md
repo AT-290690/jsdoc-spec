@@ -198,7 +198,7 @@ How to use the generator
 ```ts
 import { generator } from './jsdoc-spec'
 generator('myFunction')(1, 2, 3)(true, false)(['a', 'b'], [])()
-// myFunction(1 | 2 | 3 ; true | false ; ["a","b"] | [])
+// myFunction(1 | 2 | 3; true | false; ["a","b"] | [])
 ```
 
 ^ Each new function call is a separate argument (except for the first which is the function name)
