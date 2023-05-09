@@ -95,7 +95,37 @@ const { equal } = require('../../index.js')
     './tests/cli/src/test-functions-gen-tokens.js',
     '-logging',
     'none',
+    '-fn',
+    'pipeToDolars',
   ])
-  b = ['pipeToDolars("|")', 'pipeToDolars("|||")', 'pipeToDolars("ab|c|d")']
+  b = [
+    'pipeToDolars("|")',
+    'pipeToDolars("|||")',
+    'pipeToDolars("ab|c|d")',
+    'pipeToDolars("a|b")',
+    'pipeToDolars("d|f")',
+  ]
+  equal(a, b) ? success(c) : fail(c, b, a)
+  c = 'JS Assertions 10'
+  a = await cli([
+    '-file',
+    './tests/cli/src/test-functions-gen-tokens.js',
+    '-logging',
+    'none',
+    '-fn',
+    'pipeToDolarsFine',
+  ])
+  b = ['pipeToDolarsFine("|")']
+  equal(a, b) ? success(c) : fail(c, b, a)
+  c = 'JS Assertions 11'
+  a = await cli([
+    '-file',
+    './tests/cli/src/test-functions-gen-tokens.js',
+    '-logging',
+    'none',
+    '-fn',
+    'pipeTo',
+  ])
+  b = ['pipeTo("|")']
   equal(a, b) ? success(c) : fail(c, b, a)
 })()

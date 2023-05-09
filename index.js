@@ -36,6 +36,7 @@ const CMD_LIST = `
     ),
   GENERATED_VARIANTS_SEPARATOR = '|',
   GENERATED_ARGUMENTS_SEPARATOR = ';',
+  PLACEHOLDER_TOKEN = '"?"',
   __equal = (a, b) => {
     if (a === b) return true
     if (a && b && typeof a == 'object' && typeof b == 'object') {
@@ -101,8 +102,21 @@ const CMD_LIST = `
       .replace(/"[^"]*"/g, '')
       .replace(/'[^']*'/g, '')
       .includes(GENERATED_VARIANTS_SEPARATOR),
+  split = (string, separator) => {
+    const output = ['']
+    let isDQuote = false,
+      isSQuote = false
+    for (let i = 0; i < string.length; ++i) {
+      const current = string[i]
+      if (current === '"') isDQuote = !isDQuote
+      else if (current === "'") isSQuote = !isSQuote
+      if (current === separator && !isDQuote && !isSQuote) output.push([''])
+      else output[output.length - 1] = output[output.length - 1] + current
+    }
+    return output
+  },
   splitPipes = (x) =>
-    x.split(GENERATED_VARIANTS_SEPARATOR).map((x) => x.trim()),
+    split(x, GENERATED_VARIANTS_SEPARATOR).map((x) => x.trim()),
   decodeGenerated = (value) => {
     const matches = value.match(new RegExp(/^(.*?)(?=(\())/gm))
     if (matches == undefined)
@@ -113,10 +127,10 @@ const CMD_LIST = `
       )
     const functionName = matches.pop(),
       argsRaw = value.substring(functionName.length),
-      argsPristine = argsRaw
-        .substring(1, argsRaw.length - 1)
-        .split(GENERATED_ARGUMENTS_SEPARATOR)
-        .map((x) => x.trim()),
+      argsPristine = split(
+        argsRaw.substring(1, argsRaw.length - 1),
+        GENERATED_ARGUMENTS_SEPARATOR
+      ).map((x) => x.trim()),
       args = argsPristine.map((x) => splitPipes(x))
     return { functionName, args }
   },
@@ -207,18 +221,20 @@ const CMD_LIST = `
               .map((z) => `${JSON.stringify(z, __stringify)}`)
               .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}`
         )
-        .join(GENERATED_ARGUMENTS_SEPARATOR)
+        .join(`${GENERATED_ARGUMENTS_SEPARATOR} `)
     )})'`
     console.log('\x1b[34m', output, '\x1b[0m')
+    return output
   },
   generator = (name, memo = []) => {
     const generate = (...args) => {
       if (args.length === 0) {
         __separator()
         console.log('')
-        logGenerated(name.trim(), memo)
+        const string = logGenerated(name.trim(), memo)
         console.log('')
         __separator()
+        return string
       } else {
         memo.push([...args])
         return generate
@@ -322,7 +338,7 @@ const CMD_LIST = `
               __separator()
               console.log(
                 `\x1b[30m* // ${output
-                  .map(() => '"?"')
+                  .map(() => PLACEHOLDER_TOKEN)
                   .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}\x1b[0m`
               )
               __separator()
@@ -505,10 +521,10 @@ Happy Hacking!
             })
             __separator()
             console.log('\x1b[30m*\x1b[36m @example')
-            console.log(`\x1b[33m* ${originalValue}`)
+            console.log(`\x1b[30m* \x1b[33m${originalValue}`)
             console.log(
               `\x1b[30m* // ${cartesianProduct
-                .map(() => '"?"')
+                .map(() => PLACEHOLDER_TOKEN)
                 .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}\x1b[0m`
             )
             return
