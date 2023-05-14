@@ -134,18 +134,18 @@ This then can be used as a regular test case
 The parser will turn it into this:
 
 ```ts
-* percent(0, 25)
-* // 0
-* percent(50, 25)
-* // 13
-* percent(100, 25)
-* // 25
-* percent(0, 100)
-* // 0
-* percent(50, 100)
-* // 50
-* percent(100, 100)
-* // 100
+percent(0, 25)
+// 0
+percent(50, 25)
+// 13
+percent(100, 25)
+// 25
+percent(0, 100)
+// 0
+percent(50, 100)
+// 50
+percent(100, 100)
+// 100
 ```
 
 List of commands
@@ -251,3 +251,15 @@ getUserInfo(@Users; @Boolean)
 ```
 
 ^ This will generate all combinations of Users with the set of Booleans
+
+It's the same as defining:
+```ts
+ getUserInfo({ bornAt: new Date('1990.06.29'), credits: 1000, roles: ['admin', 'user'], name: 'Anthony', gender: 'M' }, false)
+ // {"bornAt":"1990-06-28T21:00:00.000Z","credits":"****","roles":["admin","user"],"name":"Anthony","gender":"M"}
+ getUserInfo({ bornAt: new Date('1999.03.29'), name: 'Dee Dee', credits: 100, roles: ['user'], gender: 'F' }, false)
+ // {"bornAt":"1999-03-28T21:00:00.000Z","name":"Dee Dee","credits":"***","roles":["user"],"gender":"F"}
+ getUserInfo({ bornAt: new Date('1990.06.29'), credits: 1000, roles: ['admin', 'user'], name: 'Anthony', gender: 'M' }, true)
+ // {"bornAt":"1990-06-28T21:00:00.000Z","credits":1000,"roles":["admin","user"],"name":"Anthony","gender":"M"}
+ getUserInfo({ bornAt: new Date('1999.03.29'), name: 'Dee Dee', credits: 100, roles: ['user'], gender: 'F' }, true)
+ // {"bornAt":"1999-03-28T21:00:00.000Z","name":"Dee Dee","credits":100,"roles":["user"],"gender":"F"}
+```
