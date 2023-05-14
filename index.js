@@ -466,12 +466,6 @@ module.exports.cli = async (options = {}) => {
   if (!argv.length) argv.push('-help')
   if (options.fixtures)
     options.fixtures.forEach(({ name, data }) => {
-      if (name === 'example' || `${PREFIX}${name}` in FIXTURES)
-        return console.log(
-          '\x1b[31m',
-          `Fixture identifier ${name} is reserved`,
-          '\x1b[0m'
-        )
       const stringified = data.map((x) =>
         split(x, '\n')
           .map((x) => x.trim())
