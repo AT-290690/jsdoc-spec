@@ -37,6 +37,98 @@ const CMD_LIST = `
   GENERATED_VARIANTS_SEPARATOR = '|',
   GENERATED_ARGUMENTS_SEPARATOR = ';',
   PLACEHOLDER_TOKEN = '"?"',
+  YEAR = 2023,
+  SETS = {
+    Sequance10: Array.from({ length: 10 })
+      .fill(null)
+      .map((_, i) => i + 1),
+    Sequance100: Array.from({ length: 100 })
+      .fill(null)
+      .map((_, i) => i + 1),
+    Integer: [58, 80, 90, 42, 50, 23, 47, 60, 83, 1],
+    Number: [
+      0,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64,
+      128,
+      256,
+      512,
+      1024,
+      100.001,
+      'Math.PI',
+      2.3333333333333335,
+      0.3333333333333333,
+      'Number.MAX_SAFE_INTEGER',
+      'Number.MAX_SAFE_INTEGER',
+      'NaN',
+    ],
+    String: [
+      '""',
+      '"a"',
+      '"Hello world!"',
+      '"512"',
+      '"The quick brown fox jumps over the lazy dog"',
+    ],
+    Date: [
+      'new Date(0)',
+      'new Date("1990.06.29")',
+      `new Date("${YEAR}.01.01")`,
+      `new Date("${YEAR}.02.01")`,
+      `new Date("${YEAR}.03.01")`,
+      `new Date("${YEAR}.04.01")`,
+      `new Date("${YEAR}.05.01")`,
+      `new Date("${YEAR}.06.01")`,
+      `new Date("${YEAR}.07.01")`,
+      `new Date("${YEAR}.08.01")`,
+      `new Date("${YEAR}.09.01")`,
+      `new Date("${YEAR}.11.01")`,
+      `new Date("${YEAR}.12.01")`,
+      `new Date("${YEAR}.02.28")`,
+      `new Date("${YEAR}.06.15")`,
+      `new Date("${YEAR}.01.30")`,
+    ],
+    Boolean: [false, true],
+    Function: ['() => {}', '(x) => x'],
+    None: ['undefined', 'null'],
+    Empty: ['undefined', 'null', 'false', '0', '""', '[]', '{}'],
+  },
+  FIXTURES = {
+    '@Integer': SETS.Integer,
+    '@Number': SETS.Number,
+    '@Sequance10': SETS.Sequance10,
+    '@Sequance100': SETS.Sequance100,
+    '@String': SETS.String,
+    '@Date': SETS.Date,
+    '@Boolean': SETS.Boolean,
+    '@None': SETS.None,
+    '@Function': SETS.Function,
+    '@Empty': SETS.Empty,
+    '@Array': ['[]'],
+    '@Array<@Integer>': [`[${SETS.Integer.join(',')}]`],
+    '@Array<@Number>': [`[${SETS.Number.join(',')}]`],
+    '@Array<@Sequance10>': [`[${SETS.Sequance10.join(',')}]`],
+    '@Array<@Sequance100>': [`[${SETS.Sequance100.join(',')}]`],
+    '@Array<@Strings>': [`[${SETS.String.join(',')}]`],
+    '@Array<@Date>': [`[${SETS.Date.join(',')}]`],
+    '@Array<@Boolean>': [`[${SETS.Boolean.join(',')}]`],
+    '@Array<@Empty>': [`[${SETS.Empty.join(',')}]`],
+    '@Array<@None>': [`[${SETS.None.join(',')}]`],
+    '@Object': ['{}'],
+    '@Map': ['new Map()'],
+    '@Set': ['new Set()'],
+    '@Set<@Integer>': [`new Set([${SETS.Integer.join(',')}])`],
+    '@Set<@Number>': [`new Set([${SETS.Number.join(',')}])`],
+    '@Set<@Sequance10>': [`new Set([${SETS.Sequance10.join(',')}])`],
+    '@Set<@Sequance100>': [`new Set([${SETS.Sequance100.join(',')}])`],
+    '@Set<@String>': [`new Set([${SETS.String.join(',')}])`],
+    '@Set<@Date>': [`new Set([${SETS.Date.join(',')}])`],
+    '@Set<@None>': [`new Set([${SETS.None.join(',')}])`],
+    '@Set<@Empty>': [`new Set([${SETS.Empty.join(',')}])`],
+  },
   __equal = (a, b) => {
     if (a === b) return true
     if (a && b && typeof a == 'object' && typeof b == 'object') {
@@ -179,7 +271,8 @@ const CMD_LIST = `
       .reduce((acc, f) => {
         if (isGenerator(f)) {
           const { functionName, args } = decodeGenerated(f)
-          const genFn = combine(args).map((x) => `${functionName}(${x})`)
+          const cases = toFixtures(args)
+          const genFn = combine(cases).map((x) => `${functionName}(${x})`)
           acc.push(...genFn)
         } else acc.push(f)
         return acc
@@ -191,25 +284,24 @@ const CMD_LIST = `
       )
       .filter(Boolean)
       .map((x) => x.trim())
-      .reduce((acc, r) => {
-        if (isGenerator(r)) acc.push(...splitPipes(r))
-        else acc.push(r)
-        return acc
-      }, []),
+      .reduce(
+        (acc, r) => (
+          isGenerator(r) ? acc.push(...splitPipes(r)) : acc.push(r), acc
+        ),
+        []
+      ),
   matchFunctionCalls = (functions) => [
     ...functions
       .map((x) => x.match(new RegExp(/^(.*?)(?=(\())/gm)))
       .flat()
-      .reduce((acc, item) => {
-        acc.add(item)
-        return acc
-      }, new Set()),
+      .reduce((acc, item) => (acc.add(item), acc), new Set()),
   ],
   combine = ([head, ...[headTail, ...tailTail]]) => {
     if (!headTail) return head
-    const combined = headTail.reduce((acc, x) => {
-      return acc.concat(head.map((h) => `${h}, ${x}`))
-    }, [])
+    const combined = headTail.reduce(
+      (acc, x) => acc.concat(head.map((h) => `${h}, ${x}`)),
+      []
+    )
     return combine([combined, ...tailTail])
   },
   logGenerated = (name, ...args) => {
@@ -226,23 +318,32 @@ const CMD_LIST = `
     console.log('\x1b[34m', output, '\x1b[0m')
     return output
   },
-  generator = (name, memo = []) => {
-    const generate = (...args) => {
-      if (args.length === 0) {
-        __separator()
-        console.log('')
-        const string = logGenerated(name.trim(), memo)
-        console.log('')
-        __separator()
-        return string
-      } else {
-        memo.push([...args])
-        return generate
-      }
+  toFixtures = (args) =>
+    args.map((x) =>
+      x.reduce(
+        (acc, item) => (
+          item in FIXTURES ? acc.push(...FIXTURES[item]) : acc.push(item), acc
+        ),
+        []
+      )
+    )
+;(generator = (name, memo = []) => {
+  const generate = (...args) => {
+    if (args.length === 0) {
+      __separator()
+      console.log('')
+      const string = logGenerated(name.trim(), memo)
+      console.log('')
+      __separator()
+      return string
+    } else {
+      memo.push([...args])
+      return generate
     }
-    return generate
-  },
-  testFile = async ({
+  }
+  return generate
+}),
+  (testFile = async ({
     filePath,
     sourcePath,
     fn,
@@ -335,14 +436,7 @@ const CMD_LIST = `
           console.log('\x1b[32m', '\n  All tests passed!\n', '\x1b[0m'),
         __on_fail: logPlainText
           ? () => {
-              __separator()
-              console.log(
-                `\x1b[30m* // ${output
-                  .map(() => PLACEHOLDER_TOKEN)
-                  .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}\x1b[0m`
-              )
-              __separator()
-              console.log(`\x1b[33m* ${originalValue}`)
+              console.log(`\x1b[30m*\x1b[33m ${originalValue}`)
               console.log(
                 `\x1b[30m* // ${output.join(
                   ` ${GENERATED_VARIANTS_SEPARATOR} `
@@ -360,7 +454,7 @@ const CMD_LIST = `
     } catch (err) {
       __fail('Has Errors', 'To Not Throw Errors', err.toString(), [0, 0])
     }
-  }
+  })
 module.exports.testFile = testFile
 module.exports.cli = async (argv = process.argv.slice(2)) => {
   if (!argv.length) argv.push('-help')
@@ -369,7 +463,7 @@ module.exports.cli = async (argv = process.argv.slice(2)) => {
     fn,
     isTs = false,
     logging = 'all',
-    tsconfig = '',
+    tsconfig = {},
     indent = 0,
     inMemoryComments = '',
     logPlainText = false,
@@ -504,8 +598,9 @@ Happy Hacking!
           break
         case '-gen': {
           const { functionName, args } = decodeGenerated(value)
+          const cases = toFixtures(args)
           originalValue = value
-          const cartesianProduct = combine(args)
+          const cartesianProduct = combine(cases)
           if (!filePath) {
             __separator()
             console.log('\x1b[30m *\x1b[36m @example')
@@ -527,7 +622,6 @@ Happy Hacking!
                 .map(() => PLACEHOLDER_TOKEN)
                 .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}\x1b[0m`
             )
-            return
           } else {
             inMemoryComments = `/**\n* @example\n${cartesianProduct
               .map((x) => `* ${functionName}(${x})\n * // '?'`)

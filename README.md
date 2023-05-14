@@ -202,3 +202,9 @@ generator('myFunction')(1, 2, 3)(true, false)(['a', 'b'], [])()
 ```
 
 ^ Each new function call is a separate argument (except for the first which is the function name)
+
+Fixtures:
+
+Use any of these tokens to generate predifined test data
+
+@Integer, @Number, @Sequance10, @Sequance100, @String, @Date, @Boolean, @None, @Function, @Empty, @Array, @Array<@Integer>, @Array<@Number>, @Array<@Sequance10>, @Array<@Sequance100>, @Array<@Strings>, @Array<@Date>, @Array<@Boolean>, @Array<@Empty>, @Array<@None>, @Object, @Map, @Set, @Set<@Integer>, @Set<@Number>, @Set<@Sequance10>, @Set<@Sequance100>, @Set<@String>, @Set<@Date>, @Set<@None>, @Set<@Empty>
