@@ -598,7 +598,6 @@ This package can be used both as a command-line interface (CLI) tool or as a lib
 It is an efficient and time-saving tool that helps ensure the quality and reliability of your code.\n
 By utilizing this tool, you can streamline your testing process and easily maintain test suites alongside your codebase.
 With its ease of use and flexibility, it is a valuable addition to any developer's toolkit.\n
-Thank you for choosing jsdoc-spec.
 Happy Hacking!
 `,
             '\x1b[0m'
@@ -620,7 +619,6 @@ Happy Hacking!
           break
         case '-gen': {
           const { functionName, args } = decodeGenerated(value)
-          console.log({ args })
           const cases = toFixtures(args)
           originalValue = value
           const cartesianProduct = combine(cases)
