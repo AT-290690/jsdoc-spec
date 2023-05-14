@@ -34,7 +34,7 @@ const CMD_LIST = `
       'packages/api/src/myFile.js',
       '\x1b[0m'
     ),
-  VARIANTS = '|',
+  OR = '|',
   ARGUMENTS = ';',
   PREFIX = '#',
   PLACEHOLDER_TOKEN = '"?"',
@@ -201,7 +201,7 @@ const CMD_LIST = `
   },
   isGenerator = (fn) => {
     const withoutStrings = fn.replace(/"[^"]*"/g, '').replace(/'[^']*'/g, '')
-    return withoutStrings.includes(VARIANTS) || withoutStrings.includes(PREFIX)
+    return withoutStrings.includes(OR) || withoutStrings.includes(PREFIX)
   },
   split = (string, separator) => {
     const output = ['']
@@ -216,7 +216,7 @@ const CMD_LIST = `
     }
     return output
   },
-  splitPipes = (x) => split(x, VARIANTS).map((x) => x.trim()),
+  splitOr = (x) => split(x, OR).map((x) => x.trim()),
   decodeGenerated = (value) => {
     const matches = value.match(new RegExp(/^(.*?)(?=(\())/gm))
     if (matches == undefined)
@@ -231,7 +231,7 @@ const CMD_LIST = `
         argsRaw.substring(1, argsRaw.length - 1),
         ARGUMENTS
       ).map((x) => x.trim()),
-      args = argsPristine.map((x) => splitPipes(x))
+      args = argsPristine.map(splitOr)
     return { functionName, args }
   },
   output = [],
@@ -294,7 +294,7 @@ const CMD_LIST = `
       .map((x) => x.trim())
       .reduce(
         (acc, r) => (
-          isGenerator(r) ? acc.push(...splitPipes(r)) : acc.push(r), acc
+          isGenerator(r) ? acc.push(...splitOr(r)) : acc.push(r), acc
         ),
         []
       ),
@@ -319,7 +319,7 @@ const CMD_LIST = `
           (y) =>
             `${y
               .map((z) => `${JSON.stringify(z, __stringify)}`)
-              .join(` ${VARIANTS} `)}`
+              .join(` ${OR} `)}`
         )
         .join(`${ARGUMENTS} `)
     )})'`
@@ -445,7 +445,7 @@ const CMD_LIST = `
         __on_fail: logPlainText
           ? () => {
               console.log(`\x1b[30m*\x1b[33m ${originalValue}`)
-              console.log(`\x1b[30m* // ${output.join(` ${VARIANTS} `)}\x1b[0m`)
+              console.log(`\x1b[30m* // ${output.join(` ${OR} `)}\x1b[0m`)
             }
           : () =>
               console.log('\x1b[31m', '\n  Some tests failed!\n', '\x1b[0m'),
@@ -620,6 +620,7 @@ Happy Hacking!
           break
         case '-gen': {
           const { functionName, args } = decodeGenerated(value)
+          console.log({ args })
           const cases = toFixtures(args)
           originalValue = value
           const cartesianProduct = combine(cases)
@@ -642,7 +643,7 @@ Happy Hacking!
             console.log(
               `\x1b[30m* // ${cartesianProduct
                 .map(() => PLACEHOLDER_TOKEN)
-                .join(` ${VARIANTS} `)}\x1b[0m`
+                .join(` ${OR} `)}\x1b[0m`
             )
             return
           } else {
