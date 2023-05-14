@@ -34,9 +34,9 @@ const CMD_LIST = `
       'packages/api/src/myFile.js',
       '\x1b[0m'
     ),
-  GENERATED_VARIANTS_SEPARATOR = '|',
-  GENERATED_ARGUMENTS_SEPARATOR = ';',
-  GENERATED_FIXTURE_PREFIX = '@',
+  VARIANTS = '|',
+  ARGUMENTS = ';',
+  PREFIX = '#',
   PLACEHOLDER_TOKEN = '"?"',
   YEAR = 2023,
   SETS = {
@@ -96,40 +96,48 @@ const CMD_LIST = `
     Empty: ['undefined', 'null', 'false', '0', '""', '[]', '{}'],
   },
   FIXTURES = {
-    '@Integer': SETS.Integer,
-    '@Number': SETS.Number,
-    '@Sequance10': SETS.Sequance10,
-    '@Sequance100': SETS.Sequance100,
-    '@Power': SETS.Power,
-    '@String': SETS.String,
-    '@Date': SETS.Date,
-    '@Boolean': SETS.Boolean,
-    '@None': SETS.None,
-    '@Function': SETS.Function,
-    '@Empty': SETS.Empty,
-    '@Array': ['[]'],
-    '@Array<@Integer>': [`[${SETS.Integer.join(',')}]`],
-    '@Array<@Number>': [`[${SETS.Number.join(',')}]`],
-    '@Array<@Sequance10>': [`[${SETS.Sequance10.join(',')}]`],
-    '@Array<@Sequance100>': [`[${SETS.Sequance100.join(',')}]`],
-    '@Array<@Power>': [`[${SETS.Power.join(',')}]`],
-    '@Array<@Strings>': [`[${SETS.String.join(',')}]`],
-    '@Array<@Date>': [`[${SETS.Date.join(',')}]`],
-    '@Array<@Boolean>': [`[${SETS.Boolean.join(',')}]`],
-    '@Array<@Empty>': [`[${SETS.Empty.join(',')}]`],
-    '@Array<@None>': [`[${SETS.None.join(',')}]`],
-    '@Object': ['{}'],
-    '@Map': ['new Map()'],
-    '@Set': ['new Set()'],
-    '@Set<@Integer>': [`new Set([${SETS.Integer.join(',')}])`],
-    '@Set<@Number>': [`new Set([${SETS.Number.join(',')}])`],
-    '@Set<@Sequance10>': [`new Set([${SETS.Sequance10.join(',')}])`],
-    '@Set<@Sequance100>': [`new Set([${SETS.Sequance100.join(',')}])`],
-    '@Set<@Power>': [`new Set([${SETS.Power.join(',')}])`],
-    '@Set<@String>': [`new Set([${SETS.String.join(',')}])`],
-    '@Set<@Date>': [`new Set([${SETS.Date.join(',')}])`],
-    '@Set<@None>': [`new Set([${SETS.None.join(',')}])`],
-    '@Set<@Empty>': [`new Set([${SETS.Empty.join(',')}])`],
+    [`${PREFIX}Integer`]: SETS.Integer,
+    [`${PREFIX}Number`]: SETS.Number,
+    [`${PREFIX}Sequance10`]: SETS.Sequance10,
+    [`${PREFIX}Sequance100`]: SETS.Sequance100,
+    [`${PREFIX}Power`]: SETS.Power,
+    [`${PREFIX}String`]: SETS.String,
+    [`${PREFIX}Date`]: SETS.Date,
+    [`${PREFIX}Boolean`]: SETS.Boolean,
+    [`${PREFIX}None`]: SETS.None,
+    [`${PREFIX}Function`]: SETS.Function,
+    [`${PREFIX}Empty`]: SETS.Empty,
+    [`${PREFIX}Array`]: ['[]'],
+    [`${PREFIX}Array<${PREFIX}Integer>`]: [`[${SETS.Integer.join(',')}]`],
+    [`${PREFIX}Array<${PREFIX}Number>`]: [`[${SETS.Number.join(',')}]`],
+    [`${PREFIX}Array<${PREFIX}Sequance10>`]: [`[${SETS.Sequance10.join(',')}]`],
+    [`${PREFIX}Array<${PREFIX}Sequance100>`]: [
+      `[${SETS.Sequance100.join(',')}]`,
+    ],
+    [`${PREFIX}Array<${PREFIX}Power>`]: [`[${SETS.Power.join(',')}]`],
+    [`${PREFIX}Array<${PREFIX}Strings>`]: [`[${SETS.String.join(',')}]`],
+    [`${PREFIX}Array<${PREFIX}Date>`]: [`[${SETS.Date.join(',')}]`],
+    [`${PREFIX}Array<${PREFIX}Boolean>`]: [`[${SETS.Boolean.join(',')}]`],
+    [`${PREFIX}Array<${PREFIX}Empty>`]: [`[${SETS.Empty.join(',')}]`],
+    [`${PREFIX}Array<${PREFIX}None>`]: [`[${SETS.None.join(',')}]`],
+    [`${PREFIX}Object`]: ['{}'],
+    [`${PREFIX}Map`]: ['new Map()'],
+    [`${PREFIX}Set`]: ['new Set()'],
+    [`${PREFIX}Set<${PREFIX}Integer>`]: [
+      `new Set([${SETS.Integer.join(',')}])`,
+    ],
+    [`${PREFIX}Set<${PREFIX}Number>`]: [`new Set([${SETS.Number.join(',')}])`],
+    [`${PREFIX}Set<${PREFIX}Sequance10>`]: [
+      `new Set([${SETS.Sequance10.join(',')}])`,
+    ],
+    [`${PREFIX}Set<${PREFIX}Sequance100>`]: [
+      `new Set([${SETS.Sequance100.join(',')}])`,
+    ],
+    [`${PREFIX}Set<${PREFIX}Power>`]: [`new Set([${SETS.Power.join(',')}])`],
+    [`${PREFIX}Set<${PREFIX}String>`]: [`new Set([${SETS.String.join(',')}])`],
+    [`${PREFIX}Set<${PREFIX}Date>`]: [`new Set([${SETS.Date.join(',')}])`],
+    [`${PREFIX}Set<${PREFIX}None>`]: [`new Set([${SETS.None.join(',')}])`],
+    [`${PREFIX}Set<${PREFIX}Empty>`]: [`new Set([${SETS.Empty.join(',')}])`],
   },
   __equal = (a, b) => {
     if (a === b) return true
@@ -193,10 +201,7 @@ const CMD_LIST = `
   },
   isGenerator = (fn) => {
     const withoutStrings = fn.replace(/"[^"]*"/g, '').replace(/'[^']*'/g, '')
-    return (
-      withoutStrings.includes(GENERATED_VARIANTS_SEPARATOR) ||
-      withoutStrings.includes(GENERATED_FIXTURE_PREFIX)
-    )
+    return withoutStrings.includes(VARIANTS) || withoutStrings.includes(PREFIX)
   },
   split = (string, separator) => {
     const output = ['']
@@ -211,8 +216,7 @@ const CMD_LIST = `
     }
     return output
   },
-  splitPipes = (x) =>
-    split(x, GENERATED_VARIANTS_SEPARATOR).map((x) => x.trim()),
+  splitPipes = (x) => split(x, VARIANTS).map((x) => x.trim()),
   decodeGenerated = (value) => {
     const matches = value.match(new RegExp(/^(.*?)(?=(\())/gm))
     if (matches == undefined)
@@ -225,7 +229,7 @@ const CMD_LIST = `
       argsRaw = value.substring(functionName.length),
       argsPristine = split(
         argsRaw.substring(1, argsRaw.length - 1),
-        GENERATED_ARGUMENTS_SEPARATOR
+        ARGUMENTS
       ).map((x) => x.trim()),
       args = argsPristine.map((x) => splitPipes(x))
     return { functionName, args }
@@ -315,9 +319,9 @@ const CMD_LIST = `
           (y) =>
             `${y
               .map((z) => `${JSON.stringify(z, __stringify)}`)
-              .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}`
+              .join(` ${VARIANTS} `)}`
         )
-        .join(`${GENERATED_ARGUMENTS_SEPARATOR} `)
+        .join(`${ARGUMENTS} `)
     )})'`
     console.log('\x1b[34m', output, '\x1b[0m')
     return output
@@ -441,11 +445,7 @@ const CMD_LIST = `
         __on_fail: logPlainText
           ? () => {
               console.log(`\x1b[30m*\x1b[33m ${originalValue}`)
-              console.log(
-                `\x1b[30m* // ${output.join(
-                  ` ${GENERATED_VARIANTS_SEPARATOR} `
-                )}\x1b[0m`
-              )
+              console.log(`\x1b[30m* // ${output.join(` ${VARIANTS} `)}\x1b[0m`)
             }
           : () =>
               console.log('\x1b[31m', '\n  Some tests failed!\n', '\x1b[0m'),
@@ -466,7 +466,7 @@ module.exports.cli = async (options = {}) => {
   if (!argv.length) argv.push('-help')
   if (options.fixtures)
     options.fixtures.forEach(({ name, data }) => {
-      if (name === 'example' || `@${name}` in FIXTURES)
+      if (name === 'example' || `${PREFIX}${name}` in FIXTURES)
         return console.log(
           '\x1b[31m',
           `Fixture identifier ${name} is reserved`,
@@ -478,9 +478,13 @@ module.exports.cli = async (options = {}) => {
           .filter(Boolean)
           .join(' ')
       )
-      FIXTURES[`@${name}`] = stringified
-      FIXTURES[`@Array<@${name}>`] = [`[${stringified.join(',')}]`]
-      FIXTURES[`@Set<@${name}>`] = [`new Set([${stringified.join(',')}])`]
+      FIXTURES[`${PREFIX}${name}`] = stringified
+      FIXTURES[`${PREFIX}Array<${PREFIX}${name}>`] = [
+        `[${stringified.join(',')}]`,
+      ]
+      FIXTURES[`${PREFIX}Set<${PREFIX}${name}>`] = [
+        `new Set([${stringified.join(',')}])`,
+      ]
     })
   let filePath = '',
     sourcePath = '',
@@ -644,7 +648,7 @@ Happy Hacking!
             console.log(
               `\x1b[30m* // ${cartesianProduct
                 .map(() => PLACEHOLDER_TOKEN)
-                .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}\x1b[0m`
+                .join(` ${VARIANTS} `)}\x1b[0m`
             )
             return
           } else {

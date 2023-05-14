@@ -209,7 +209,7 @@ Fixtures:
 
 Use any of these tokens to generate predifined test data
 
-@Integer, @Number, @Sequance10, @Sequance100, @String, @Date, @Boolean, @None, @Function, @Empty, @Array, @Array<@Integer>, @Array<@Number>, @Array<@Sequance10>, @Array<@Sequance100>, @Array<@Strings>, @Array<@Date>, @Array<@Boolean>, @Array<@Empty>, @Array<@None>, @Object, @Map, @Set, @Set<@Integer>, @Set<@Number>, @Set<@Sequance10>, @Set<@Sequance100>, @Set<@String>, @Set<@Date>, @Set<@None>, @Set<@Empty>
+#Integer, #Number, #Sequance10, #Sequance100, #String, #Date, #Boolean, #None, #Function, #Empty, #Array, #Array<#Integer>, #Array<#Number>, #Array<#Sequance10>, #Array<#Sequance100>, #Array<#Strings>, #Array<#Date>, #Array<#Boolean>, #Array<#Empty>, #Array<#None>, #Object, #Map, #Set, #Set<#Integer>, #Set<#Number>, #Set<#Sequance10>, #Set<#Sequance100>, #Set<#String>, #Set<#Date>, #Set<#None>, #Set<#Empty>
 
 ```ts
 percent(@Sequance100; 100)
@@ -247,12 +247,13 @@ cli({
 Then you can use them like this
 
 ```ts
-getUserInfo(@Users; @Boolean)
+getUserInfo(#Users; #Boolean)
 ```
 
 ^ This will generate all combinations of Users with the set of Booleans
 
 It's the same as defining:
+
 ```ts
  getUserInfo({ bornAt: new Date('1990.06.29'), credits: 1000, roles: ['admin', 'user'], name: 'Anthony', gender: 'M' }, false)
  // {"bornAt":"1990-06-28T21:00:00.000Z","credits":"****","roles":["admin","user"],"name":"Anthony","gender":"M"}
@@ -263,3 +264,4 @@ It's the same as defining:
  getUserInfo({ bornAt: new Date('1999.03.29'), name: 'Dee Dee', credits: 100, roles: ['user'], gender: 'F' }, true)
  // {"bornAt":"1999-03-28T21:00:00.000Z","name":"Dee Dee","credits":100,"roles":["user"],"gender":"F"}
 ```
+
