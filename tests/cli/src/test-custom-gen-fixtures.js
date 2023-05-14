@@ -1,6 +1,6 @@
 /**
  * @example
- * sumReadValues(@MeterRead)
+ * sumReadValues(#MeterRead)
  * // -1 | -1 | -1
  */
 module.exports.sumReadValues = sumReadValues = (read) => ({
@@ -9,7 +9,7 @@ module.exports.sumReadValues = sumReadValues = (read) => ({
 })
 /**
  * @example
- * getUserInfo(@User; @Boolean)
+ * getUserInfo(#User; #Boolean)
  * // "?"
  */
 module.exports.getUserInfo = getUserInfo = (user, showCredits) =>
