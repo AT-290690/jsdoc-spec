@@ -81,7 +81,7 @@ cli()
 
 Define script in pacakge.json
 
-```
+```json
 "scripts": {
  "test": "node ./jsdoc-spec.js"
 }
@@ -125,7 +125,7 @@ Call -gen with an argument surrounded in quotes
 
 If file is provided then a shorthand result will be logged at the bottom
 
-```
+```ts
 percent(0 | 50 | 100; 25 | 100)
 // 0 | 13 | 25 | 0 | 50 | 100
 ```
@@ -133,7 +133,7 @@ percent(0 | 50 | 100; 25 | 100)
 This then can be used as a regular test case
 The parser will turn it into this:
 
-```
+```ts
 * percent(0, 25)
 * // 0
 * percent(50, 25)
@@ -182,14 +182,16 @@ The output of cli is a promisse with an array of failed funciton descriptions
 import { cli } from './jsdoc-spec'
 // cli uses process.argv.slice(2) if no arguments are provided
 // but you can provide args with an array
-cli([
-  '-file',
-  './tests/cli/mock/test-functions.ts',
-  '-ts',
-  './tests/cli/tsconfig.json',
-  '-logging', // you can chose logging levels
-  'none', // no loggin - we need the output
-]).then((failed) => failed /* ['percent(12, 100)', 'percent((5, 8)'] */)
+cli({
+  argv: [
+    '-file',
+    './tests/cli/mock/test-functions.ts',
+    '-ts',
+    './tests/cli/tsconfig.json',
+    '-logging', // you can chose logging levels
+    'none', // no loggin - we need the output
+  ],
+}).then((failed) => failed /* ['percent(12, 100)', 'percent((5, 8)'] */)
 // if failed  array is empty then all tests have passed
 ```
 
@@ -208,3 +210,44 @@ Fixtures:
 Use any of these tokens to generate predifined test data
 
 @Integer, @Number, @Sequance10, @Sequance100, @String, @Date, @Boolean, @None, @Function, @Empty, @Array, @Array<@Integer>, @Array<@Number>, @Array<@Sequance10>, @Array<@Sequance100>, @Array<@Strings>, @Array<@Date>, @Array<@Boolean>, @Array<@Empty>, @Array<@None>, @Object, @Map, @Set, @Set<@Integer>, @Set<@Number>, @Set<@Sequance10>, @Set<@Sequance100>, @Set<@String>, @Set<@Date>, @Set<@None>, @Set<@Empty>
+
+```ts
+percent(@Sequance100; 100)
+// 1 | 2 | 3 | 4 ...  99 | 100
+```
+
+Adding your own fixtures
+
+```ts
+cli({
+  fixtures: [
+    {
+      name: 'Users',
+      data: [
+        `{
+            bornAt: new Date('1990.06.29'),
+            credits: 1000,
+            roles: ['admin', 'user'],
+            name: 'Anthony',
+            gender: 'M'
+         }`,
+        `{
+            bornAt: new Date('1999.03.29'),
+            name: 'Dee Dee',
+            credits: 100,
+            roles: ['user'],
+            gender: 'F'
+        }`,
+      ],
+    },
+  ],
+})
+```
+
+Then you can use them like this
+
+```ts
+getUserInfo(@Users; @Boolean)
+```
+
+^ This will generate all combinations of Users with the set of Booleans

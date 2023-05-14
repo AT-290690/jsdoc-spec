@@ -36,6 +36,7 @@ const CMD_LIST = `
     ),
   GENERATED_VARIANTS_SEPARATOR = '|',
   GENERATED_ARGUMENTS_SEPARATOR = ';',
+  GENERATED_FIXTURE_PREFIX = '@',
   PLACEHOLDER_TOKEN = '"?"',
   YEAR = 2023,
   SETS = {
@@ -45,19 +46,15 @@ const CMD_LIST = `
     Sequance100: Array.from({ length: 100 })
       .fill(null)
       .map((_, i) => i + 1),
-    Integer: [58, 80, 90, 42, 50, 23, 47, 60, 83, 1],
+    Integer: [58, 80, 90, 43, 50, 23, 47, 60, 83, 1],
+    Power: Array.from({ length: 10 })
+      .fill(null)
+      .map((_, i) => 2 << i),
     Number: [
       0,
-      2,
-      4,
-      8,
-      16,
-      32,
-      64,
-      128,
-      256,
-      512,
-      1024,
+      1,
+      42,
+      69,
       100.001,
       'Math.PI',
       2.3333333333333335,
@@ -65,6 +62,8 @@ const CMD_LIST = `
       'Number.MAX_SAFE_INTEGER',
       'Number.MAX_SAFE_INTEGER',
       'NaN',
+      'Infinity',
+      '-Infinity',
     ],
     String: [
       '""',
@@ -101,6 +100,7 @@ const CMD_LIST = `
     '@Number': SETS.Number,
     '@Sequance10': SETS.Sequance10,
     '@Sequance100': SETS.Sequance100,
+    '@Power': SETS.Power,
     '@String': SETS.String,
     '@Date': SETS.Date,
     '@Boolean': SETS.Boolean,
@@ -112,6 +112,7 @@ const CMD_LIST = `
     '@Array<@Number>': [`[${SETS.Number.join(',')}]`],
     '@Array<@Sequance10>': [`[${SETS.Sequance10.join(',')}]`],
     '@Array<@Sequance100>': [`[${SETS.Sequance100.join(',')}]`],
+    '@Array<@Power>': [`[${SETS.Power.join(',')}]`],
     '@Array<@Strings>': [`[${SETS.String.join(',')}]`],
     '@Array<@Date>': [`[${SETS.Date.join(',')}]`],
     '@Array<@Boolean>': [`[${SETS.Boolean.join(',')}]`],
@@ -124,6 +125,7 @@ const CMD_LIST = `
     '@Set<@Number>': [`new Set([${SETS.Number.join(',')}])`],
     '@Set<@Sequance10>': [`new Set([${SETS.Sequance10.join(',')}])`],
     '@Set<@Sequance100>': [`new Set([${SETS.Sequance100.join(',')}])`],
+    '@Set<@Power>': [`new Set([${SETS.Power.join(',')}])`],
     '@Set<@String>': [`new Set([${SETS.String.join(',')}])`],
     '@Set<@Date>': [`new Set([${SETS.Date.join(',')}])`],
     '@Set<@None>': [`new Set([${SETS.None.join(',')}])`],
@@ -189,11 +191,13 @@ const CMD_LIST = `
         return value
     }
   },
-  isGenerator = (fn) =>
-    fn
-      .replace(/"[^"]*"/g, '')
-      .replace(/'[^']*'/g, '')
-      .includes(GENERATED_VARIANTS_SEPARATOR),
+  isGenerator = (fn) => {
+    const withoutStrings = fn.replace(/"[^"]*"/g, '').replace(/'[^']*'/g, '')
+    return (
+      withoutStrings.includes(GENERATED_VARIANTS_SEPARATOR) ||
+      withoutStrings.includes(GENERATED_FIXTURE_PREFIX)
+    )
+  },
   split = (string, separator) => {
     const output = ['']
     let isDQuote = false,
@@ -326,24 +330,24 @@ const CMD_LIST = `
         ),
         []
       )
-    )
-;(generator = (name, memo = []) => {
-  const generate = (...args) => {
-    if (args.length === 0) {
-      __separator()
-      console.log('')
-      const string = logGenerated(name.trim(), memo)
-      console.log('')
-      __separator()
-      return string
-    } else {
-      memo.push([...args])
-      return generate
+    ),
+  generator = (name, memo = []) => {
+    const generate = (...args) => {
+      if (args.length === 0) {
+        __separator()
+        console.log('')
+        const string = logGenerated(name.trim(), memo)
+        console.log('')
+        __separator()
+        return string
+      } else {
+        memo.push([...args])
+        return generate
+      }
     }
-  }
-  return generate
-}),
-  (testFile = async ({
+    return generate
+  },
+  testFile = async ({
     filePath,
     sourcePath,
     fn,
@@ -452,12 +456,32 @@ const CMD_LIST = `
       runInContext(source, ctx)
       return ctx.__f
     } catch (err) {
+      console.log('\x1b[31m', { err }, '\x1b[0m')
       __fail('Has Errors', 'To Not Throw Errors', err.toString(), [0, 0])
     }
-  })
+  }
 module.exports.testFile = testFile
-module.exports.cli = async (argv = process.argv.slice(2)) => {
+module.exports.cli = async (options = {}) => {
+  argv = options.argv || process.argv.slice(2)
   if (!argv.length) argv.push('-help')
+  if (options.fixtures)
+    options.fixtures.forEach(({ name, data }) => {
+      if (name === 'example' || `@${name}` in FIXTURES)
+        return console.log(
+          '\x1b[31m',
+          `Fixture identifier ${name} is reserved`,
+          '\x1b[0m'
+        )
+      const stringified = data.map((x) =>
+        split(x, '\n')
+          .map((x) => x.trim())
+          .filter(Boolean)
+          .join(' ')
+      )
+      FIXTURES[`@${name}`] = stringified
+      FIXTURES[`@Array<@${name}>`] = [`[${stringified.join(',')}]`]
+      FIXTURES[`@Set<@${name}>`] = [`new Set([${stringified.join(',')}])`]
+    })
   let filePath = '',
     sourcePath = '',
     fn,
@@ -622,6 +646,7 @@ Happy Hacking!
                 .map(() => PLACEHOLDER_TOKEN)
                 .join(` ${GENERATED_VARIANTS_SEPARATOR} `)}\x1b[0m`
             )
+            return
           } else {
             inMemoryComments = `/**\n* @example\n${cartesianProduct
               .map((x) => `* ${functionName}(${x})\n * // '?'`)
