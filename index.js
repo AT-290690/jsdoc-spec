@@ -43,9 +43,6 @@ const CMD_LIST = `
     Sequance10: Array.from({ length: 10 })
       .fill(null)
       .map((_, i) => i + 1),
-    Sequance100: Array.from({ length: 100 })
-      .fill(null)
-      .map((_, i) => i + 1),
     Integer: [58, 80, 90, 43, 50, 23, 47, 60, 83, 1],
     Power: Array.from({ length: 10 })
       .fill(null)
@@ -94,12 +91,13 @@ const CMD_LIST = `
     Function: ['() => {}', '(x) => x'],
     None: ['undefined', 'null'],
     Empty: ['undefined', 'null', 'false', '0', '""', '[]', '{}'],
+    Falsy: ['undefined', 'null', 'false', '0', '-0', '""', 'NaN'],
   },
   FIXTURES = {
+    [`${PREFIX}Falsy`]: SETS.Falsy,
     [`${PREFIX}Integer`]: SETS.Integer,
     [`${PREFIX}Number`]: SETS.Number,
     [`${PREFIX}Sequance10`]: SETS.Sequance10,
-    [`${PREFIX}Sequance100`]: SETS.Sequance100,
     [`${PREFIX}Power`]: SETS.Power,
     [`${PREFIX}String`]: SETS.String,
     [`${PREFIX}Date`]: SETS.Date,
@@ -111,15 +109,13 @@ const CMD_LIST = `
     [`${PREFIX}Array<${PREFIX}Integer>`]: [`[${SETS.Integer.join(',')}]`],
     [`${PREFIX}Array<${PREFIX}Number>`]: [`[${SETS.Number.join(',')}]`],
     [`${PREFIX}Array<${PREFIX}Sequance10>`]: [`[${SETS.Sequance10.join(',')}]`],
-    [`${PREFIX}Array<${PREFIX}Sequance100>`]: [
-      `[${SETS.Sequance100.join(',')}]`,
-    ],
     [`${PREFIX}Array<${PREFIX}Power>`]: [`[${SETS.Power.join(',')}]`],
     [`${PREFIX}Array<${PREFIX}Strings>`]: [`[${SETS.String.join(',')}]`],
     [`${PREFIX}Array<${PREFIX}Date>`]: [`[${SETS.Date.join(',')}]`],
     [`${PREFIX}Array<${PREFIX}Boolean>`]: [`[${SETS.Boolean.join(',')}]`],
     [`${PREFIX}Array<${PREFIX}Empty>`]: [`[${SETS.Empty.join(',')}]`],
     [`${PREFIX}Array<${PREFIX}None>`]: [`[${SETS.None.join(',')}]`],
+    [`${PREFIX}Array<${PREFIX}Falsy>`]: [`[${SETS.Falsy.join(',')}]`],
     [`${PREFIX}Object`]: ['{}'],
     [`${PREFIX}Map`]: ['new Map()'],
     [`${PREFIX}Set`]: ['new Set()'],
@@ -130,14 +126,12 @@ const CMD_LIST = `
     [`${PREFIX}Set<${PREFIX}Sequance10>`]: [
       `new Set([${SETS.Sequance10.join(',')}])`,
     ],
-    [`${PREFIX}Set<${PREFIX}Sequance100>`]: [
-      `new Set([${SETS.Sequance100.join(',')}])`,
-    ],
     [`${PREFIX}Set<${PREFIX}Power>`]: [`new Set([${SETS.Power.join(',')}])`],
     [`${PREFIX}Set<${PREFIX}String>`]: [`new Set([${SETS.String.join(',')}])`],
     [`${PREFIX}Set<${PREFIX}Date>`]: [`new Set([${SETS.Date.join(',')}])`],
     [`${PREFIX}Set<${PREFIX}None>`]: [`new Set([${SETS.None.join(',')}])`],
     [`${PREFIX}Set<${PREFIX}Empty>`]: [`new Set([${SETS.Empty.join(',')}])`],
+    [`${PREFIX}Set<${PREFIX}Falsy>`]: [`new Set([${SETS.Falsy.join(',')}])`],
   },
   __equal = (a, b) => {
     if (a === b) return true
@@ -192,11 +186,26 @@ const CMD_LIST = `
   __stringify = (_, value) => {
     switch (value?.constructor.name) {
       case 'Map':
-        return Object.fromEntries(value.entries())
+        return { Map: Object.fromEntries(value.entries()) }
       case 'Set':
-        return Array.from(value)
+        return { Set: Array.from(value) }
+      case 'Function':
+        return {
+          Function: value
+            .toString()
+            .match(new RegExp(/(?:\().*(?:\))/))
+            .join(','),
+        }
       default:
-        return value
+        switch (value) {
+          case undefined:
+            return 'Undefined'
+          case null:
+            return 'Null'
+          default:
+            if (value != value) return 'NaN'
+            return value
+        }
     }
   },
   isGenerator = (fn) => {
