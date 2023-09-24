@@ -19,6 +19,8 @@ const CMD_LIST = `
 ------------------------------------
 | -indent  | indentation 0|1|2|3|4  |
 ------------------------------------
+| -inline  | file into single line  |
+------------------------------------
 | -example |  tutorial example      |
 ------------------------------------
 | -formula |  print tutorial gen    |
@@ -38,12 +40,11 @@ const CMD_LIST = `
   ARGUMENTS = ';',
   PREFIX = '#',
   PLACEHOLDER_TOKEN = '"?"',
-  YEAR = 2023,
   SETS = {
     Sequance10: Array.from({ length: 10 })
       .fill(null)
       .map((_, i) => i + 1),
-    Integer: [58, 80, 90, 43, 50, 23, 47, 60, 83, 1],
+    Integer: [0, 1, 42, 69, 100],
     Power: Array.from({ length: 10 })
       .fill(null)
       .map((_, i) => 2 << i),
@@ -66,29 +67,11 @@ const CMD_LIST = `
       '""',
       '"a"',
       '"Hello world!"',
-      '"512"',
       '"The quick brown fox jumps over the lazy dog"',
     ],
-    Date: [
-      'new Date(0)',
-      'new Date("1990.06.29")',
-      `new Date("${YEAR}.01.01")`,
-      `new Date("${YEAR}.02.01")`,
-      `new Date("${YEAR}.03.01")`,
-      `new Date("${YEAR}.04.01")`,
-      `new Date("${YEAR}.05.01")`,
-      `new Date("${YEAR}.06.01")`,
-      `new Date("${YEAR}.07.01")`,
-      `new Date("${YEAR}.08.01")`,
-      `new Date("${YEAR}.09.01")`,
-      `new Date("${YEAR}.11.01")`,
-      `new Date("${YEAR}.12.01")`,
-      `new Date("${YEAR}.02.28")`,
-      `new Date("${YEAR}.06.15")`,
-      `new Date("${YEAR}.01.30")`,
-    ],
+    Date: ['new Date(0)', 'new Date("1990.06.29")', 'new Date("1970.01.01")'],
     Boolean: [false, true],
-    Function: ['() => {}', '(x) => x'],
+    Function: ['() => {}'],
     None: ['undefined', 'null'],
     Empty: ['undefined', 'null', 'false', '0', '""', '[]', '{}'],
     Falsy: ['undefined', 'null', 'false', '0', '-0', '""', 'NaN'],
@@ -601,14 +584,7 @@ export const percent = (percent: number, value: number): number => Math.round(va
             '\x1b[1m',
             `
 JSDoc spec\n
-This package is a versatile tool that can automatically turn your jsDoc comments into executable tests. 
-With its input variation generation feature, you can easily generate tests with multiple possible input values.\n
-This package can be used both as a command-line interface (CLI) tool or as a library that can be integrated into your code. 
-It is an efficient and time-saving tool that helps ensure the quality and reliability of your code.\n
-By utilizing this tool, you can streamline your testing process and easily maintain test suites alongside your codebase.
-With its ease of use and flexibility, it is a valuable addition to any developer's toolkit.\n
-Happy Hacking!
-`,
+The jsdoc-spec module searches for pieces of text that look like interactive JavaScript examples, and then executes those examples to verify that they work exactly as shown.`,
             '\x1b[0m'
           )
         case '-example':
@@ -626,6 +602,15 @@ Happy Hacking!
         case '-indent':
           indent = +value
           break
+        case '-inline':
+          console.log(
+            '\x1b[30m',
+            (await readFile(filePath, 'utf-8'))
+              .replace(new RegExp(/\s|\t/g), '')
+              .replace(new RegExp(/\n/g), ' '),
+            '\x1b[0m'
+          )
+          return
         case '-gen': {
           const { functionName, args } = decodeGenerated(value)
           const cases = toFixtures(args)
